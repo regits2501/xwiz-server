@@ -1,0 +1,7 @@
+*.s*
+*.vim
+.nyc_output/
+dependencies/
+coverage/
+*coverage*
+*.tgz

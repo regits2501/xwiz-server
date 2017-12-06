@@ -1,0 +1,51 @@
+{
+  "name": "twiz-server",
+  "version": "1.0.0-beta.3",
+  "description": "Twitter OAuth 1.0a library, gets you an access token , supports REST and STREAM apis (node.js part) ",
+  "main": "src/twiz-server.js",
+  "scripts": {
+    "lint": "eslint src/twiz-server.js",
+    "test": "nyc mocha test/twizServer.js",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "dependencies": {
+    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils.git",
+    "twiz-server-oauth": "https://github.com/gits2501/twiz-server-oauth.git",
+    "twiz-server-options": "https://github.com/gits2501/twiz-server-options.git",
+    "twiz-server-phaseutils": "https://github.com/gits2501/twiz-server-phaseutils.git",
+    "twiz-server-proxy": "https://github.com/gits2501/twiz-server-proxy.git"
+  },
+  "keywords": [
+    "authentication",
+    "twitter",
+    "OAuth 1.0a",
+    "authorize",
+    "authenticate",
+    "stream",
+    "chunk",
+    "3-leg",
+    "Sign in"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gits2501/twiz-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gits2501/twiz-server/issues"
+  },
+  "author": {
+    "name": "gits2501",
+    "url": "https://github.com/gits2501",
+    "email": "canidomath@yahoo.com"
+  },
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "mocha": "^5.2.0",
+    "nock": "^9.2.6",
+    "node-fixtures": "0.0.1",
+    "node-mocks-http": "^1.7.0",
+    "nyc": "^11.8.0"
+  }
+}
