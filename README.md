@@ -49,7 +49,7 @@ It happens to be a 3-leg (step) dance, it's implementation could look like this:
 As you can see there are 3 actors. Your web app/site, your server and twitter.  
 Twitter apis for authorization and authentication do not use `CORS`, that is, they do not emit `CORS` headers. So we cant send request to twitter directly from browser, but rather proxy them trough a Server, since request sent from server do not have any `CORS` restrictions applied. Your app is identified with `CONSUMER_KEY` and `CONSUMER_SECRET`. Both of which you get from twitter when you [create new app](https://apps.twitter.com/).
  
-> On Twitter, user is internally associated with the a`ccess token`.
+> On Twitter, user is internally associated with the `access token`.
  Like user's `access token` , your app's `key` and `secret` are extreamly sensitive information. If anyone whould to get your app's key/secret then it can send requests to twitter just like they were sent from your app. It can try to mock you. Usually that's not what you want. Also, javascript is in plain text form in browser so we should never have our `CONSUMER_KEY/SECRET` there but on server. This is another good reason why we need a server to proxy our requests. 
 > Likewise if anyone is to get user's `access token`, then it may be able to send requests on user's behalf (who may actually never visited an app) and/or authorized such actions for that app. Altough, my guess is not in easy and straightforward way. 
 
@@ -113,7 +113,11 @@ in browser:
    
     bower:  comming soon
 	 
-    local:  <script src="src/twiz-client_bundle.js"></script>	 
+    local:
+
+    npm install twiz-client && npm run build
+
+    Then drop it in script tag:  <script src="src/twiz-client_bundle.js"></script>		 
 	 
 	 
 on server:  
@@ -178,28 +182,7 @@ The only presumtions about a succesfull request is one with `200OK` status code,
 
 `twizlent.OAuth(..)` will bring api data (`o.data`) if `twiz.haste(accessToken)` was called on the server and had `200OK` response. If not and the `twiz.continueOAuth()` is called it will receive `request token` and redirect user to twitter. 
 
-Then `o.redirection` is set to `true` in fullfuled handler. Also note that here everything (redirection to twitter, twitter's (re)direction back to app) happens in same window/tab in browser. Check [web site](https://github.com/gits2501/twiz/blob/master/README.md#web-site) workflow for popUps.
-
-##### Test drive
-[Test drive](https://gits2501.github.io/QuoteOwlet/) SPA (with `/oauth/authenticate`). Running on heroku free plan. May appear slow when dyno is waking up.
-
-### Authorize or Authenticate
-
-### [⬑](#contents)
-By default `twizlent.OAuth(..)` will use the `/oauth/authorize` endpoint , but you can use the `/oauth/authenticate` like this:
-
-_**browser:**_
-```js
-let args = {
-    ...
-      endpoints:{ 
-         authorize: 'authenticate' // sets authenticate instead of authorize (notice no forward slash)
-      }
- }
- ```
-
-
-This is the so called [Sign in with Twitter](https://developer.twitter.com/en/docs/twitter-for-websites/log-in-with-twitter/guides/browser-sign-in-flow) flow, the one that uses `/oauth/authenticate` endpoint. That's how you would utilize it.
+Then `o.redirection` is set to `true` in fullfuled handler. Also note that here everything (redirection to twitter, twitter's (re)direction back to app) happens in same window/tab in browser. Check [web site](#web-site) workflow for popUps.
 
 Server is writen as express middleware.
 
@@ -257,11 +240,34 @@ _**node.js:**_
   })
 ]
 ```
+
+##### Test drive
+[Test drive](https://gits2501.github.io/QuoteOwlet/) SPA (with `/oauth/authenticate`). Running on heroku free plan. May appear slow when dyno is waking up.
+
+### Authorize or Authenticate
+
+### [⬑](#contents)
+By default `twizlent.OAuth(..)` will use the `/oauth/authorize` endpoint , but you can use the `/oauth/authenticate` like this:
+
+_**browser:**_
+```js
+let args = {
+    ...
+      endpoints:{ 
+         authorize: 'authenticate' // sets authenticate instead of authorize (notice no forward slash)
+      }
+ }
+ ```
+
+
+This is the so called [Sign in with Twitter](https://developer.twitter.com/en/docs/twitter-for-websites/log-in-with-twitter/guides/browser-sign-in-flow) flow, the one that uses `/oauth/authenticate` endpoint. That's how you would utilize it.
+
+
 ### Access Token
 
 ### [⬑](#contents)
    Currently the minimum of what twiz see as valid `access token` is an object that has properties `oauth_token` and `oauth_token_secret` set. But it can have other parameters, like `screen_name`.
-The `twiz-server` (here twizer) is by default an ending middleware, that is it will end the request. So call it before your error handling middlewares, if any. There are cases when twiz **does not end** the request, check [Stream](https://github.com/gits2501/twiz/blob/master/EXAMPLES.md#stream) usage. Errors will be sent to the next error handling midleware with `next(err)` calls and same errors will also be piped back to the browser.
+The `twiz-server` (here twizer) is by default an ending middleware, that is it will end the request. So call it before your error handling middlewares, if any. There are cases when twiz **does not end** the request, check [Stream](/EXAMPLES.md#stream) usage. Errors will be sent to the next error handling midleware with `next(err)` calls and same errors will also be piped back to the browser.
 
 ### Prefligh 
 
@@ -330,7 +336,7 @@ btn.addListener('onClick', function(){                  // lets say we initiate 
 
 })
 ```
-The `redirection_url` is now different then the page url then one from which we are making the request. Also we have `new_window` where we specify the window/popUp features where `redirection_url` will land . Making this more of a website use case.
+The `redirection_url` is now different then the page url from which we are making the request. Also we have `new_window` where we specify the window/popUp features where `redirection_url` will land . Making this more of a website use case.
 The `new_window` object contains two properties, `name` and `features`, they act the same as `windowName` and `windowFeatures` in [window.open()](https://developer.mozilla.org/en-US/docs/Web/API/Window/open). Note `o.window` reference to newly opened window / popUp instead of `o.redirection`. 
 
 _**browser(different page):**_
@@ -347,9 +353,9 @@ _**browser(different page):**_
         // err is instance of Error()
         // has err.name, err.message, err.stack ...
    })
-]
+
 ```
-What this enables is to have completely custom popUp pages but same familiar popUp like for instance when you whould like to share something on twitter by pressing a twitter share button. Currently the downside is that users of the web site use case will get a popUp warning by browser which they have to allow before popUp apears.
+What this enables is to have completely custom popUp pages but same familiar popUp, like for instance when you whould like to share something on twitter by pressing a twitter share button. Currently the downside is that users of the web site use case will get a popUp warning by browser which they have to allow before popUp apears.
 Test drive [here]
                             
 _**node.js:**_
@@ -389,7 +395,7 @@ chunkedResponseWarning | Stream is consumed chunk by chunk in `xhr.onprogress(..
 noRepeat | Cannot make another request with same `redirection(callback)` url. 
 spaWarning | Twitter authorization data not found in url.
 
-`spaWarning` and `noRepeat` are errors that have informative character and usually you dont have to pay attention to them. They happen when user loads/relods page where `twizlent.finishOAuth(..)` is called on every load, imediately (which is valid). They are indications that `twizlent.finishOAuth(..)` will not run. For example, `spaWarning` means `twizlent.finishOAuth(..)` won't run on url that doesn't contain valid twitter authorization data. `noRepeat` means that you cannot make two requests with same twitter authorization data (like same `request token`). Check the [Stream](https://github.com/gits2501/twiz/blob/master/EXAMPLES.md#stream) for explanation of `chunkedResponseWarning`.
+`spaWarning` and `noRepeat` are errors that have informative character and usually you dont have to pay attention to them. They happen when user loads/relods page where `twizlent.finishOAuth(..)` is called on every load, imediately (which is valid). They are indications that `twizlent.finishOAuth(..)` will not run. For example, `spaWarning` means `twizlent.finishOAuth(..)` won't run on url that doesn't contain valid twitter authorization data. `noRepeat` means that you cannot make two requests with same twitter authorization data (like same `request token`). Check the [Stream](/EXAMPLES.md#stream) for explanation of `chunkedResponseWarning`.
 
 ### Node.js
 

@@ -121,7 +121,7 @@ So you can easily see something like `onStream` handler that:
  2. saves `twitterOptions`/`accessToken` to apropriate places to be used in the next middleware 
  3. when it's done doing its thing, calls the next middleware
 
-As you can see, twiz is not keen to stuff potentialy security sensitive data to `app` or `req` objects. It is given to your judgement to place your data where you see fit. `app` is used as storage in example just as an ilustration of a purpose, maybe you whould want some caching solution like `redis`/`memcache`. 
+As you can see, twiz is not keen to stuff potentialy security sensitive data to `app` or `req` objects. It is given to your judgement to place your data where you see fit. `app` is used as storage in example just as an ilustration of a purpose, maybe you would want some caching solution like `redis`/`memcache`. 
 
 
 ## Chunked responses 
@@ -148,11 +148,11 @@ A reference on how to [consume](https://stackoverflow.com/questions/6789703/how-
 
 1. If your not sending  `content-type`.
 
-   It is good idea to set `content-type` header on your server before you proxy first `chunk` back to client or else when stream finialy ends promise will reject with `noContentType` error. But your data will be already consumed in your in `onprogress(..)` callback.
+   It is good idea to set `content-type` header on your server before you proxy first `chunk` back to client or else when stream finialy ends promise will reject with `noContentType` error. But your data will already be consumed in your in `onprogress(..)` callback.
 
 2. If you are sending `content-type`.
 
-   When your stream is consumed in `onprogress(..)` and it ends the promise will still resolve and you will have all your data that stream emmited in `o.data` also. Since your getting your data in `onprogress(..)` you might not want to receive it in your promise too. Same goes if your using callbacks and not promises. To stop all data from stream to resolve in promise set `chunked=true` in `args.options`.
+   When your stream is consumed in `onprogress(..)` and it ends, the promise will still resolve and you will have all your data that stream emmited in `o.data` also. Since you're getting your data in `onprogress(..)` you might not want to receive it in your promise too. Same goes if your using callbacks and not promises. To stop all data from stream to resolve in promise set `chunked=true` in `args.options`.
 
 _**browser:**_
 ```js
@@ -191,20 +191,23 @@ _**browser:**_
            background_noise: 'cicada low frequency',
            intentions: 'lawfull good'
         }                                            
-        new_window:{
+        new_window: {
            name: 'myPopUpWindow',
            features: 'resizable=yes,height=613,width=400,left=400,top=300'
         },
 
-        options:{                                         //  twitter request options  
+        options: {                                         //  twitter request options  
            method: 'POST',
            path:   'statuses/update.json'
            params: {
              status: "Hooray, new tweet!"
            }
-       }
+        }
      }
-  }
+     
+     twiz.OAuth(args)
+     .then(..)
+  })
 
 ```
  _**browser(different page):**_
@@ -227,12 +230,12 @@ If there is no `session data` in url, function returns `undefined` and logs warn
 ## onEnd 
 ### [⬑](#contents)
 
- There is a second argument that is passed to your `tokenFound` handler. The `onEnd(..)` function.
-It's use is to specify your function that will end the request as you see fit. For instance when you would like to use a template engine. `onEnd(..)` fires afther `access protected resources` (api) call but it does not end the response.
+In `tokenFound` handler `twiz` has the `onEnd(..)` function available.
+It's use is to specify your own function that will end the request as you see fit. For instance when you would like to use a template engine. `onEnd(..)` fires after `access protected resources` (api) call but it does not end the response.
 
 _**node.js:**_
 ```js
-  app.on('tokenFound', function(found, onEnd){
+  app.on('tokenFound', function(found, twiz){
 
      found                        
      .then(function(accessToken){
@@ -242,9 +245,9 @@ _**node.js:**_
 
      })
 
-     onEnd(function(apiData, res){ // happens after accessToken is found
+     twiz.onEnd(function(apiData, res){                          // Happens after accessToken is found and api data received
          res.render('signedInUI', { user: apiData.user.name })   // Uses server side template engine
-                                                                // Ends response internally
+                                                                 // Ends response internally
      })
   })
 ```
@@ -262,7 +265,7 @@ Then the `twizlent.finishOAuth(..)` will get this `signedInUI` template in it's 
 ## beforeSend 
 ### [⬑](#contents)
 
-On client side the `args.options` object can alse have a `beforeSend` property. It is a function that allows your to manipulate `xhr` instance before request is sent.
+On client side the `args.options` object can also have a `beforeSend` property. It is a function that allows your to manipulate `xhr` instance before request is sent.
 
 _**browser:**_
 ```js   
@@ -298,7 +301,9 @@ The `args` object can have the `callback` property. You can specify there your c
 1. **Promise is not avalable** 
 
 If there is `Promise`, `OAuth(..)` and `finishOAuth(..)` functions always return promise.
+
 _**browser:**_
+
 ```js
 args = {
    ...

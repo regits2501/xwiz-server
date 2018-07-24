@@ -60,7 +60,6 @@ var Upgrade      = require('twiz-server-phaseutils')
    PhaseBuilder.prototype = Object.create(Options.prototype); 
 
    PhaseBuilder.prototype.getCurrentLegAction = function(options){// reads oauth leg from sent quary params (path)
-      // console.log('legPath: ', options.legPath); 
       var path = options.legPath;
       var action;
   
@@ -71,7 +70,7 @@ var Upgrade      = require('twiz-server-phaseutils')
         }
       }
   
-      this.isLegActionValid(action); // console.log('action:', action)
+      this.isLegActionValid(action); 
       return action;
    }
    
@@ -95,7 +94,7 @@ var Upgrade      = require('twiz-server-phaseutils')
 
       this.alternator = {            // Menages phases as abstractions of different sets of request's url params
                                                                      
-         run: function(tokenObj){ //console.log('alternator.run +====')
+         run: function(tokenObj){ 
             try{
 
               OAuth.safeKeepAccessToken(tokenObj, vault); // safe keep token in vault
@@ -106,7 +105,6 @@ var Upgrade      = require('twiz-server-phaseutils')
             }
          },
          switch_: function(){                            // check for access token and pick a phase
-    //        console.log('SWITCH ----');
             if(vault.accessToken) this.apiPhase.run();   // straightforward to twitter api (access token present)
             else this.legPhase.run() ;                   // go for OAuth leg (no access token present)
          },
@@ -114,7 +112,7 @@ var Upgrade      = require('twiz-server-phaseutils')
          legPhase: '',                                   // OAuth leg
          apiPhase: '',                                   // Twitter api phase 
          
-         errorHandler: function(err){  //console.log('error handler alternator run -----');
+         errorHandler: function(err){  
             this.next(err);                              // call error handler (if any)
             if(this.reject) this.reject(err)             // if a phase uses promise dont let it hang 
          },
@@ -126,12 +124,11 @@ var Upgrade      = require('twiz-server-phaseutils')
 
       Upgrade.addWorkSpace.call(this.alternator);       // adding state (phase) menagment tools to alternator
 
-      this.startAlternator  = function(req, res, next){ // console.time('t')
-         // console.log('Alternator.started')
+      this.startAlternator  = function(req, res, next){ 
          try {
             this.initPhases(req, res, next);             // initiate phases
          }catch(err){
-            this.alternator.errorHandler.bind(this,err);
+            this.alternator.errorHandler.bind(this,err); // catch any errors
          }                                         
 
          this.initAlternator();                                                    // set alternator
@@ -151,7 +148,7 @@ var Upgrade      = require('twiz-server-phaseutils')
 
    PhaseConfigurator.prototype = Object.create(PhaseBuilder.prototype)
    
-   PhaseConfigurator.prototype.addUtils = function(){
+   PhaseConfigurator.prototype.addUtils = function(){      // add utils used in verCredentials phase
 
      this.removeSubstr = function removeSubstr(str, regstr){ // removes subtring from a string
         var regexp = new RegExp(regstr);              // create regexp object from string
@@ -164,7 +161,7 @@ var Upgrade      = require('twiz-server-phaseutils')
         var endlength = endChars.length;                       // Lenght of characters we search at the end
         var strlength = str.length                             // Lenght of the string
         var end = str.slice(strlength - endlength, strlength); // Take end of the string
-     //   console.log('end', end)
+    
         if(end === endChars) return str.slice(0, strlength - endlength); // Chars are at the end, slice them 
            else return str;                                              // Or return unchanged string  
   
@@ -187,59 +184,47 @@ var Upgrade      = require('twiz-server-phaseutils')
       
    }      
       
-   PhaseConfigurator.prototype.addRequestTokenRun = function(options, vault){ 
+   PhaseConfigurator.prototype.addRequestTokenRun = function(options, vault){ // defines request token phase
 
       var legPhase = this.alternator.legPhase;
       var apiPhase = this.alternator.apiPhase;
 
       legPhase.run = function(){                                 // adding set of jobs (runs) for this phase
-         // console.log('leg.phase run: ', this.name, this.action)
+      
          this.signRequest.run(this.name);
          this.proxyRequest.run(this.name, this.action);
       } 
-      //console.log('legPhase.signRequest:', legPhase.signRequest)
-      legPhase.signRequest.run = function(phase){
-                                                    // new OAuth
+      
+      legPhase.signRequest.run = function(phase){                // define what sign request does in leg phase
   
          this.insertConsumerKey(vault, options, phase);
          this.insertSignature(vault, options, phase);
          this.finalizeOptions(options, phase);
       }
  
-      legPhase.proxyRequest.run = function(phase, action){         
-          // console.log('proxyRequest run()') 
+      legPhase.proxyRequest.run = function(phase, action){       // define what proxy request does       
+ 
          this.sendRequest(this.handleResponse.bind(this, phase, action));
       }
    
-      legPhase.proxyRequest.handleResponse =  function(phase, action){   // Handle response from twitter
-          /*   console.log('twtResponse content-type: ', this.twtResponse.headers['content-type']);
-               console.log('twtResponse statusCode: ', this.twtResponse.statusCode);
-               console.log('twtResponse statusMessage: ', this.twtResponse.statusMessage);
-               console.log('twtResponse headers: ', this.twtResponse.headers);
-               this.twtResponse.on('data',function(data){
-                   console.log('in data Event - |phase|: '+ phase + " |action|: " +action )
-                   console.log(data.toString('utf8'))
-             })
-          */   
-             this.twtResponseOnError();                            // Handle any response errors
-             if(this.twtResponseOnFailure(phase)) return;          // if response didn't have desired outcome
+      legPhase.proxyRequest.handleResponse =  function(phase, action){  // Handle response from twitter
+          
+             this.twtResponseOnError();                           // Handle any response errors
+             if(this.twtResponseOnFailure(phase)) return;         // if response didn't have desired outcome
          
-             // console.log('before PipeBack')
-             this.twtResponsePipeBack(action); // ends response after piping
-             this.twtResponse.on('end', function(){//console.log(action + ' ENDED'); console.timeEnd('t')}.bind(this))
-              })
+             this.twtResponsePipeBack(action);                    // ends response after piping
       }
   
-      legPhase.proxyRequest.sendRequest = function(twtResponseHandler){
-        // console.log('request sent with Options:', options);
-         this.createTwtRequest(options, twtResponseHandler); // Create request we send to twitter
+      legPhase.proxyRequest.sendRequest = function(twtResponseHandler){ 
+        
+         this.createTwtRequest(options, twtResponseHandler);      // Create request we send to twitter
          this.twtRequestOnError();                                // Handle any request error
          this.twtRequestSend();                                   // Send request 
       }           
          
       apiPhase.run = legPhase.run; // same phase run
             
-      apiPhase.signRequest.run = function(phase){
+      apiPhase.signRequest.run = function(phase){           // define what sign reques does for api phase
            
          this.insertConsumerKey(vault, options, phase);
          this.insertAccessToken(vault, options, phase);
@@ -247,13 +232,13 @@ var Upgrade      = require('twiz-server-phaseutils')
          this.finalizeOptions(options, phase);
       }      
  
-      apiPhase.proxyRequest.run = legPhase.proxyRequest.run
+      apiPhase.proxyRequest.run = legPhase.proxyRequest.run                       // same run as in leg phase
       apiPhase.proxyRequest.handleResponse = legPhase.proxyRequest.handleResponse // same response handler 
-      apiPhase.proxyRequest.sendRequest = legPhase.proxyRequest.sendRequest // same response handler 
+      apiPhase.proxyRequest.sendRequest = legPhase.proxyRequest.sendRequest       // same send request 
    
   }
 
-  PhaseConfigurator.prototype.addAccessTokenRun = function(options, vault){
+  PhaseConfigurator.prototype.addAccessTokenRun = function(options, vault){  // define access token phase
 
      this.addRequestTokenRun(options, vault);
 
@@ -262,41 +247,35 @@ var Upgrade      = require('twiz-server-phaseutils')
      var apiPhase   = alternator.apiPhase;
      var resolve    = alternator.resolve;               // reference to promise resolver
      var reject     = alternator.reject;
-     var stream     = this.sentOptions.stream;
-    // console.log('access_token run')
+     var stream     = this.sentOptions.stream;          // flag that indicates stream usage
+    
 
-     legPhase.proxyRequest.finish =  function(){ // on succsefull request this handler is invoked
+     legPhase.proxyRequest.finish =  function(){     // on succsefull request this handler is invoked
          this.twtResponseParseBody(vault);
          /* istanbul ignore else */
          if(!stream){ alternator.run(vault.twtData);}  // Alternator runs again with possible access token,
-                                                     // makes (bultin) api call
-         resolve(vault.twtData);                     // Resolves a promise where access token = twtData
+                                                       // makes (bultin) api call.
+         resolve(vault.twtData);                       // Resolves a promise where access token = twtData
      }
 
-     legPhase.proxyRequest.finishOnFail = function(){ // on request failure (status code != 200) invoke this
-         this.twtResponseParseBody(vault);            // parse body
-         reject(vault.twtData)                        // reject promise with data received from failed request
+     legPhase.proxyRequest.finishOnFail = function(){ // On request failure (status code != 200) invoke this
+         this.twtResponseParseBody(vault);            // Parse body
+         reject(vault.twtData)                        // Reject promise with data received from failed request
          
      }
      
      legPhase.proxyRequest.handleResponse = function(phase){ // redefine handle response for legPhase
-           //  console.log('phase: ', phase, 'action', action);
-          //   console.log('twtResponse content-type: ', this.twtResponse.headers['content-type']);
-          //   console.log('twtResponse statusCode: ', this.twtResponse.statusCode);
-          //   console.log('twtResponse statusMessage: ', this.twtResponse.statusMessage);
-          // console.log('twtResponse headers: ', this.twtResponse.headers);
+          
          this.twtResponseOnError(reject);            // reject promise also when error happens
-         this.twtResponseReceiveBody(vault, 'utf8')
+         this.twtResponseReceiveBody(vault, 'utf8')  // receives response body (memory hit)
          
-         if(this.twtResponseOnFailure(phase)){  console.log('||  failure finishOnFail :', this.finishOnFail)
-                                           console.log('|| failure finish:', this.finish)
+         if(this.twtResponseOnFailure(phase)){       // invoke on failure ending 
+                                          
              this.twtResponseOnEnd(this.finishOnFail.bind(this))           
              return;
          }
-        
        
-         console.log('handleResponse [ok] >>>> finish:', this.finish)
-         this.twtResponseOnEnd(this.finish.bind(this));
+         this.twtResponseOnEnd(this.finish.bind(this)); // succesful end
         
       }
    
@@ -315,8 +294,8 @@ var Upgrade      = require('twiz-server-phaseutils')
       
       }
    }
-  // function that rewires api phase of access_token with user provided finish
-  PhaseConfigurator.prototype.addVerCredentialsRun = function(options, vault, params){
+  
+  PhaseConfigurator.prototype.addVerCredentialsRun = function(options, vault, params){ // defines verCred phase
     
      var legPhase            = this.alternator.legPhase;              // take current leg phase 
      var verCredentialsPhase = this.alternator.apiPhase;              // the new (changed) apiPhase
@@ -405,18 +384,17 @@ var Upgrade      = require('twiz-server-phaseutils')
      })
   }
 
-  PhaseConfigurator.prototype.emitPhaseEvents =  function(){ 
-   //  console.log('this.alternator.legPhase.action: ', this.alternator.legPhase.action);
-
+  PhaseConfigurator.prototype.emitPhaseEvents =  function(){ // Notifies user about action its taking,
+                                                             // gives user interface.
      
       switch(this.alternator.legPhase.action){            
-        case this.leg[0] : // console.log('loadAccessToken') //  request token leg
+        case this.leg[0] : 
           this.app.emit(this.eventNames.loadAccessToken, 
                         this.getRequestTokenInterface(),     // get user facing interface for this leg
                         this.verifyAccessToken.bind(this)    // to check accesst token 'freshness' 
           );
         break;
-        case this.leg[2] :  // console.log('tokenFound')     // access token leg
+        case this.leg[2] :                                   // access token leg
           this.app.emit(this.eventNames.tokenFound, 
                         this.accessTokenPromise,             // promise for accesss token run
                         this.getAccessTokenInterface())        
@@ -426,8 +404,7 @@ var Upgrade      = require('twiz-server-phaseutils')
   }
   
   PhaseConfigurator.prototype.eventNames = {                // Names of events that are emited
-     loadAccessToken: 'hasteOrOAuth',                        // Handler for inserting (loading) access token  
-                                                            // Different value for clearer user api (see graphs)
+     loadAccessToken: 'hasteOrOAuth',                       // Handler for inserting (loading) access token  
      tokenFound:      'tokenFound'                          // Handler that passes access token to user
   }
                                              
@@ -438,7 +415,7 @@ var Upgrade      = require('twiz-server-phaseutils')
         continueOAuth: this.alternator.run.bind(this.alternator, ''),  // Alias of the OAuth()
         haste:         this.alternator.run.bind(this.alternator)       // Run with possible access token
      }
-     //  inf must ahve real next(..) reference
+     
      this.setStreamSupport(inf)
      return inf;
   }
@@ -448,7 +425,7 @@ var Upgrade      = require('twiz-server-phaseutils')
      var inf = {
         onEnd: this.userFinish  
      }
-  // inf must habe userStreamFinish as next(..)
+  
      this.setStreamSupport(inf);
      return inf;
   }
@@ -456,8 +433,8 @@ var Upgrade      = require('twiz-server-phaseutils')
   PhaseConfigurator.prototype.setStreamSupport = function(inf){ // console.log('Stream: ', this.sentOptions.stream)
      if(this.sentOptions.stream){             // check that user indicated stream behaviour
         inf.stream     = true;                // set stream indicator
-        inf.next       = this.next;           // goes to the next middleware // could be just next() - do finish
-        inf.twitterOptions = this.getTwitterRequestOptions();
+        inf.next       = this.next;           // goes to the next middleware 
+        inf.twitterOptions = this.getTwitterRequestOptions(); // gets twitter options user sent in request
      }
   }
   
@@ -471,7 +448,7 @@ var Upgrade      = require('twiz-server-phaseutils')
      }
   } 
   
-  PhaseConfigurator.prototype.verifyAccessToken = function(tokenObj, params){ 
+  PhaseConfigurator.prototype.verifyAccessToken = function(tokenObj, params){ // makes phase promise aware
      return this.promisify(this.verCredentials.bind(this, tokenObj, params))
   }
 
