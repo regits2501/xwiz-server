@@ -1,0 +1,26 @@
+{
+  "name": "twiz-server-oauth",
+  "version": "1.0.0",
+  "description": "Inserts missing oauth values - calculates oauth signature.",
+  "main": "src/OAuth.js",
+  "scripts": {
+    "lint": "eslint src/OAuth.js",
+    "mocha": "mocha test/oauth.js",
+    "test": "nyc npm run mocha",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "author": "gits2501",
+  "license": "MIT",
+  "dependencies": {
+    "hmac_sha1": "https://github.com/gits2501/hmac_sha1.git",
+    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils.git"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "mocha": "^5.2.0",
+    "node-fixtures": "0.0.1",
+    "nyc": "^11.8.0",
+    "twiz-server-options": "https://github.com/gits2501/twiz-server-options.git"
+  }
+}

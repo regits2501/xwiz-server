@@ -1,0 +1,27 @@
+{
+  "name": "twiz-server-options",
+  "version": "1.0.0",
+  "description": " Makes request options out of user sent parameters",
+  "main": "src/Options.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "lint": "eslint src/Options",
+    "mocha": "mocha test/options.js",
+    "test": "nyc npm run mocha",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "author": "gits2501",
+  "license": "MIT",
+  "dependencies": {
+    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "mocha": "^5.2.0",
+    "node-fixtures": "0.0.1",
+    "nyc": "^11.9.0"
+  }
+}

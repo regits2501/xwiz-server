@@ -1,0 +1,22 @@
+{
+  "name": "twiz-client-utils",
+  "version": "1.0.0",
+  "description": "CustomError and percentEncode functions for twiz-client",
+  "main": "src/utils.js",
+
+  "scripts": {
+    "lint":"eslint src/utils.js",
+    "tap": "tap -Rspec test/*.js",
+    "test": "nyc npm run tap && nyc report --reporter=text-lcov | coveralls"
+  },
+
+  "author": "github.com/gits2501",
+  "license": "MIT",
+
+  "devDependencies": {
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "nyc": "^11.7.1",
+    "tap": "^11.1.3"
+  }
+}
