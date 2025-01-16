@@ -1,12 +1,12 @@
-import { CustomError } from './libs/twiz-client-utils' //libstwiz-client-utils';  // borrow util from client
+import { CustomError } from './lib/twiz-client-utils' //libstwiz-client-utils';  // borrow util from client
 import { parse } from 'url';
-import { call, prototype } from './libs/twiz-server-options';
-import OAuth, { safeKeepAccessToken } from './libs/twiz-server-oauth';
-import TwitterProxy from './libs/twiz-server-proxy';
-import { addWorkSpace } from './libs/twiz-server-phaseutils';       
+import { call, prototype } from './lib/twiz-server-options';
+import OAuth, { safeKeepAccessToken } from './lib/twiz-server-oauth';
+import TwitterProxy from './lib/twiz-server-proxy';
+import { addWorkSpace } from './lib/twiz-server-phaseutils';
 
 
-  class PhaseBuilder {
+class PhaseBuilder {
    constructor(options, vault, args) {
       // api requests. For example, OAuth leg params, Api params ect...                          
 
@@ -79,13 +79,13 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
    }
 }
 
-   PhaseBuilder.prototype = Object.create(prototype); 
+PhaseBuilder.prototype = Object.create(prototype);
 
-   
 
- 
-    //*/
-   class PhaseConfigurator {
+
+
+//*/
+class PhaseConfigurator {
    constructor(args) {
 
       var vault = {}; // create private object for sensitive user info
@@ -242,7 +242,7 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
       var apiPhase = alternator.apiPhase;
       var resolve = alternator.resolve; // reference to promise resolver
       var reject = alternator.reject;
-      var stream = this.sentOptions.stream; // flag that indicates stream usage
+      var stream = this.requestQueryParams.stream; // flag that indicates stream usage
 
 
       legPhase.proxyRequest.finish = function () {
@@ -417,7 +417,7 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
       return inf;
    }
    setStreamSupport(inf) {
-      if (this.sentOptions.stream) { // check that user indicated stream behaviour
+      if (this.requestQueryParams.stream) { // check that user indicated stream behaviour
          inf.stream = true; // set stream indicator
          inf.next = this.next; // goes to the next middleware 
          inf.twitterOptions = this.getTwitterRequestOptions(); // gets twitter options user sent in request
@@ -425,11 +425,11 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
    }
    getTwitterRequestOptions() {
       return {
-         restHost: this.sentOptions.apiHost, // rest api domain
+         restHost: this.requestQueryParams.apiHost, // rest api domain
          streamHost: 'stream.twitter.com', // stream api domain
-         method: this.sentOptions.apiMethod, // set method    
-         path: parse(this.sentOptions.apiPath, true).pathname, // path whitout query string
-         params: parse(this.sentOptions.apiPath, true).query // object with query params
+         method: this.requestQueryParams.apiMethod, // set method    
+         path: parse(this.requestQueryParams.apiPath, true).pathname, // path whitout query string
+         params: parse(this.requestQueryParams.apiPath, true).query // object with query params
       };
    }
    verifyAccessToken(tokenObj, params) {
@@ -458,33 +458,17 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
    }
 }
 
-   PhaseConfigurator.prototype = Object.create(PhaseBuilder.prototype)
-   
+PhaseConfigurator.prototype = Object.create(PhaseBuilder.prototype)
 
+PhaseConfigurator.prototype.eventNames = {                // Names of events that are emited
+   loadAccessToken: 'hasteOrOAuth',                       // Handler for inserting (loading) access token  
+   tokenFound: 'tokenFound'                          // Handler that passes access token to user
+}
 
-      
-
-  
-
-
-  
-  PhaseConfigurator.prototype.eventNames = {                // Names of events that are emited
-     loadAccessToken: 'hasteOrOAuth',                       // Handler for inserting (loading) access token  
-     tokenFound:      'tokenFound'                          // Handler that passes access token to user
-  }
-                                             
-  
-  
-  
-  
-
-
-
-
-  export default  function(args){
-    return function(){    
-       var pc = new PhaseConfigurator(args);
-       pc.startAlternator.apply(pc, arguments);
-    }
-  }
+export default function (args) {
+   return function () {
+      var pc = new PhaseConfigurator(args);
+      pc.startAlternator.apply(pc, arguments);
+   }
+}
 
