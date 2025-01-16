@@ -242,7 +242,7 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
       var apiPhase = alternator.apiPhase;
       var resolve = alternator.resolve; // reference to promise resolver
       var reject = alternator.reject;
-      var stream = this.sentOptions.stream; // flag that indicates stream usage
+      var stream = this.requestQueryParams.stream; // flag that indicates stream usage
 
 
       legPhase.proxyRequest.finish = function () {
@@ -417,7 +417,7 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
       return inf;
    }
    setStreamSupport(inf) {
-      if (this.sentOptions.stream) { // check that user indicated stream behaviour
+      if (this.requestQueryParams.stream) { // check that user indicated stream behaviour
          inf.stream = true; // set stream indicator
          inf.next = this.next; // goes to the next middleware 
          inf.twitterOptions = this.getTwitterRequestOptions(); // gets twitter options user sent in request
@@ -425,11 +425,11 @@ import { addWorkSpace } from './libs/twiz-server-phaseutils';
    }
    getTwitterRequestOptions() {
       return {
-         restHost: this.sentOptions.apiHost, // rest api domain
+         restHost: this.requestQueryParams.apiHost, // rest api domain
          streamHost: 'stream.twitter.com', // stream api domain
-         method: this.sentOptions.apiMethod, // set method    
-         path: parse(this.sentOptions.apiPath, true).pathname, // path whitout query string
-         params: parse(this.sentOptions.apiPath, true).query // object with query params
+         method: this.requestQueryParams.apiMethod, // set method    
+         path: parse(this.requestQueryParams.apiPath, true).pathname, // path whitout query string
+         params: parse(this.requestQueryParams.apiPath, true).query // object with query params
       };
    }
    verifyAccessToken(tokenObj, params) {

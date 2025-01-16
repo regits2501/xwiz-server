@@ -1,2 +1,0 @@
-# twiz-server-oauth (wip) [![Build Status](https://travis-ci.org/gits2501/twiz-server-oauth.svg?branch=master)](https://travis-ci.org/gits2501/twiz-server-oauth) [![Coverage Status](https://coveralls.io/repos/github/gits2501/twiz-server-oauth/badge.svg?branch=master)](https://coveralls.io/github/gits2501/twiz-server-oauth?branch=master)
-Inserts missing oauth values - calculates oauth signature (by Twitter OAuth 1.0a).
