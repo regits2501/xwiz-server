@@ -1,16 +1,16 @@
-import { CustomError } from './lib/twiz-client-utils' //libstwiz-client-utils';  // borrow util from client
+import { CustomError } from './lib/twiz-client-utils/src/utils.js' //libstwiz-client-utils';  // borrow util from client
 import { parse } from 'url';
-import { call, prototype } from './lib/twiz-server-options';
-import OAuth, { safeKeepAccessToken } from './lib/twiz-server-oauth';
-import TwitterProxy from './lib/twiz-server-proxy';
-import { addWorkSpace } from './lib/twiz-server-phaseutils';
+import  Options from './lib/twiz-server-options/src/Options.js'; // { call, prototype }
+import OAuth from './lib/twiz-server-oauth/src/OAuth.js';
+import TwitterProxy from './lib/twiz-server-proxy/src/TwitterProxy.js';
+import Upgrade from './lib/twiz-server-phaseutils/src/PhaseUtils.js'; 
 
 
-class PhaseBuilder {
+class PhaseBuilder extends Options {
    constructor(options, vault, args) {
       // api requests. For example, OAuth leg params, Api params ect...                          
 
-      call(this, options, vault, args);
+      super(options, vault, args);
 
       this.leg = ['request_token', '', 'access_token']; // Oauth leg (step) names
 
@@ -79,27 +79,22 @@ class PhaseBuilder {
    }
 }
 
-PhaseBuilder.prototype = Object.create(prototype);
-
-
-
-
-//*/
-class PhaseConfigurator {
+class PhaseConfigurator extends PhaseBuilder {
    constructor(args) {
 
       var vault = {}; // create private object for sensitive user info
       var options = {}; // create priv object also for possible sensitive info from front end
 
-      this.addUtils.call(options); // extend functionality
 
-      PhaseBuilder.call(this, options, vault, args);
+      super(options, vault, args);
+      
+      this.addUtils.call(options); // extend functionality // was before super() call
 
       this.alternator = {
          run: function (tokenObj) {
             try {
 
-               safeKeepAccessToken(tokenObj, vault); // safe keep token in vault
+               OAuth.safeKeepAccessToken(tokenObj, vault); // safe keep token in vault
                this.switch_(); // choose a phase 
             }
             catch (err) {
@@ -124,7 +119,7 @@ class PhaseConfigurator {
          reject: ''
       };
 
-      addWorkSpace.call(this.alternator); // adding state (phase) menagment tools to alternator
+      Upgrade.addWorkSpace.call(this.alternator); // adding state (phase) menagment tools to alternator
 
       this.startAlternator = function (req, res, next) {
          try {
@@ -147,6 +142,7 @@ class PhaseConfigurator {
       PhaseConfigurator.vault = vault; // convinience refs
       PhaseConfigurator.options = options;
    }
+
    addUtils() {
 
       this.removeSubstr = function removeSubstr(str, regstr) {
@@ -167,10 +163,12 @@ class PhaseConfigurator {
       };
 
    }
+
    initAlternator() {
       this.alternator.load({ legPhase: this.legPhase, apiPhase: this.apiPhase }); // load it with phases
       this.alternator.next = this.next; // get next reference 
    }
+
    configurePhases(action, options, vault) {
 
       if (action === this.leg[0]) // request_token 
@@ -180,12 +178,13 @@ class PhaseConfigurator {
          this.accessTokenPromise = this.promisify(this.addAccessTokenRun.bind(this, options, vault));
 
    }
-   addRequestTokenRun(options, vault) {
+
+   addRequestTokenRun(options, vault) { 
 
       var legPhase = this.alternator.legPhase;
       var apiPhase = this.alternator.apiPhase;
 
-      legPhase.run = function () {
+      legPhase.run = function () { 
 
          this.signRequest.run(this.name);
          this.proxyRequest.run(this.name, this.action);
@@ -195,15 +194,15 @@ class PhaseConfigurator {
 
          this.insertConsumerKey(vault, options, phase);
          this.insertSignature(vault, options, phase);
-         this.finalizeOptions(options, phase);
+         this.finalizeLegPhaseOptions(options, phase);
       };
 
-      legPhase.proxyRequest.run = function (phase, action) {
+      legPhase.proxyRequest.run = function (phase, action) { 
 
          this.sendRequest(this.handleResponse.bind(this, phase, action));
       };
 
-      legPhase.proxyRequest.handleResponse = function (phase, action) {
+      legPhase.proxyRequest.handleResponse = function (phase, action) { 
 
          this.twtResponseOnError(); // Handle any response errors
          if (this.twtResponseOnFailure(phase)) return; // if response didn't have desired outcome
@@ -220,12 +219,12 @@ class PhaseConfigurator {
 
       apiPhase.run = legPhase.run; // same phase run
 
-      apiPhase.signRequest.run = function (phase) {
+      apiPhase.signRequest.run = function (phase) { 
 
          this.insertConsumerKey(vault, options, phase);
          this.insertAccessToken(vault, options, phase);
          this.insertSignature(vault, options, phase);
-         this.finalizeOptions(options, phase);
+         this.finalizeApiPhaseOptions(options, phase);
       };
 
       apiPhase.proxyRequest.run = legPhase.proxyRequest.run; // same run as in leg phase
@@ -233,10 +232,11 @@ class PhaseConfigurator {
       apiPhase.proxyRequest.sendRequest = legPhase.proxyRequest.sendRequest; // same send request 
 
    }
+
    addAccessTokenRun(options, vault) {
 
       this.addRequestTokenRun(options, vault);
-
+      
       var alternator = this.alternator;
       var legPhase = alternator.legPhase;
       var apiPhase = alternator.apiPhase;
@@ -245,7 +245,7 @@ class PhaseConfigurator {
       var stream = this.requestQueryParams.stream; // flag that indicates stream usage
 
 
-      legPhase.proxyRequest.finish = function () {
+      legPhase.proxyRequest.finish = function () { 
          this.twtResponseParseBody(vault);
          /* istanbul ignore else */
          if (!stream) { alternator.run(vault.twtData); } // Alternator runs again with possible access token,
@@ -260,7 +260,7 @@ class PhaseConfigurator {
 
       };
 
-      legPhase.proxyRequest.handleResponse = function (phase) {
+      legPhase.proxyRequest.handleResponse = function (phase) { 
 
          this.twtResponseOnError(reject); // reject promise also when error happens
          this.twtResponseReceiveBody(vault, 'utf8'); // receives response body (memory hit)
@@ -272,12 +272,11 @@ class PhaseConfigurator {
          }
 
          this.twtResponseOnEnd(this.finish.bind(this)); // succesful end
-
       };
 
       this.userFinish = function (onEnd) {
 
-         apiPhase.proxyRequest.finish = function () {
+         apiPhase.proxyRequest.finish = function () { 
 
             this.twtResponseParseBody(vault); // parse returned data
             onEnd(vault.twtData, this.response, this.next); // call user handler with data 
@@ -287,10 +286,9 @@ class PhaseConfigurator {
 
          apiPhase.proxyRequest.finishOnFail = legPhase.proxyRequest.finishOnFail; // we need same 'onFail' handler 
          apiPhase.proxyRequest.handleResponse = legPhase.proxyRequest.handleResponse; // set same response handler
-
-
       };
    }
+
    addVerCredentialsRun(options, vault, params) {
 
       var legPhase = this.alternator.legPhase; // take current leg phase 
@@ -370,6 +368,7 @@ class PhaseConfigurator {
          throw this.CustomError('accessTokenMissing');
       }.bind(this);
    }
+
    promisify(func) {
       var alternator = this.alternator;
       return new Promise(function (resolve, reject) {
@@ -378,6 +377,7 @@ class PhaseConfigurator {
          func();
       });
    }
+
    emitPhaseEvents() {
       // gives user interface.
 
@@ -396,6 +396,7 @@ class PhaseConfigurator {
             break;
       }
    }
+
    getRequestTokenInterface() {
 
       var inf = {
@@ -407,6 +408,7 @@ class PhaseConfigurator {
       this.setStreamSupport(inf);
       return inf;
    }
+
    getAccessTokenInterface() {
 
       var inf = {
@@ -416,6 +418,7 @@ class PhaseConfigurator {
       this.setStreamSupport(inf);
       return inf;
    }
+
    setStreamSupport(inf) {
       if (this.requestQueryParams.stream) { // check that user indicated stream behaviour
          inf.stream = true; // set stream indicator
@@ -423,6 +426,7 @@ class PhaseConfigurator {
          inf.twitterOptions = this.getTwitterRequestOptions(); // gets twitter options user sent in request
       }
    }
+
    getTwitterRequestOptions() {
       return {
          restHost: this.requestQueryParams.apiHost, // rest api domain
@@ -432,9 +436,11 @@ class PhaseConfigurator {
          params: parse(this.requestQueryParams.apiPath, true).query // object with query params
       };
    }
+
    verifyAccessToken(tokenObj, params) {
       return this.promisify(this.verCredentials.bind(this, tokenObj, params));
    }
+   
    verCredentials(tokenObj, params = {}) {
       var options = PhaseConfigurator.options;
       var vault = PhaseConfigurator.vault;
@@ -457,8 +463,6 @@ class PhaseConfigurator {
       this.alternator.load({ apiPhase: saved.apiPhase, legRun: saved.legRun }); // load back before any changes
    }
 }
-
-PhaseConfigurator.prototype = Object.create(PhaseBuilder.prototype)
 
 PhaseConfigurator.prototype.eventNames = {                // Names of events that are emited
    loadAccessToken: 'hasteOrOAuth',                       // Handler for inserting (loading) access token  

@@ -8,13 +8,11 @@
     "test": "nyc mocha test/twizServer.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
-  "dependencies": {
-    "twiz-client-utils": "https://github.com/gits2501/twiz-client-utils.git",
-    "twiz-server-oauth": "https://github.com/gits2501/twiz-server-oauth.git",
-    "twiz-server-options": "https://github.com/gits2501/twiz-server-options.git",
-    "twiz-server-phaseutils": "https://github.com/gits2501/twiz-server-phaseutils.git",
-    "twiz-server-proxy": "https://github.com/gits2501/twiz-server-proxy.git"
-  },
+  
+   "dependencies": {
+     "hmac_sha1": "https://github.com/gits2501/hmac_sha1.git"
+   },
+
   "keywords": [
     "authentication",
     "twitter",
