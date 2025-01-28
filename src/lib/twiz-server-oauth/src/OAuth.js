@@ -51,7 +51,7 @@ import hmacSha1 from 'hmac_sha1';
          },
 
          this.SBS_AHS_insert = function (phase, key, value) {
-            var sbs = this[phase + 'SBS']; //console.log('sbs_ah insert:',phase,sbs)  // sbs of a phase)
+            var sbs = this[phase + 'SBS'];
             this[phase + 'SBS'] = this.insertKey(sbs, this.missingVal_SBS, key, value); // set key in SBS
 
             var ahs = this[phase + 'AH']; // take  authorization header string of a phase
@@ -126,8 +126,6 @@ import hmacSha1 from 'hmac_sha1';
       // Set general options
       this.finalizeOptions(options, phase);
 
-      console.log('finalizeApiPhaseOptions()');
-
       let hasBody = options.method === 'POST';
 
       if (hasBody) {
@@ -143,7 +141,7 @@ import hmacSha1 from 'hmac_sha1';
          MUST HAVE: "content-length" header and a request body (body is legSBS - signature base string for the leg)
          MUST NOT HAVE: "content-type" header, if there is a content-type set the X will not be able to authenticate OAuth leg request
       */
-   finalizeLegPhaseOptions(options, phase) { console.log('finalizeLegPhaseOptions()')
+   finalizeLegPhaseOptions(options, phase) { 
 
       // Set general options
       this.finalizeOptions(options, phase);
@@ -158,15 +156,5 @@ import hmacSha1 from 'hmac_sha1';
    }
 }
 
-  
 
-
- 
-
-   
-      
-
-
-   
-
-  export default OAuth
+export default OAuth

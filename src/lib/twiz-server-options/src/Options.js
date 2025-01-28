@@ -65,7 +65,6 @@ class Options extends EventEmitter {
       });
 
       this.initOptions = function init(req, res, next) {
-         console.log("initOptions()");
          // Encompases server logic 
          args.request = req;
          args.response = res;
@@ -132,20 +131,19 @@ class Options extends EventEmitter {
       if (!this.request) throw this.CustomError('requestNotSet');
       if (!this.response) throw this.CustomError('responseNotSet');
    }
+
    getRequestParamsAndHeaders(reqHeaders) {
+
       this.requestQueryParams = parse(this.request.url, true).query; // parses options sent in client request url
-
-
-      // console.log('requestQueryParams: ', this.requestQueryParams);
       this.getRequestHeaders(reqHeaders); // gets headers from client request and puts them in reqHeaders
    }
+
    getRequestHeaders(reqHeaders) {
       // is supported ( is in reqHeaders)
       var sentHeaders = this.request.headers; // headers from request stream
       for (var name in reqHeaders) { // omiting content-length, since it must be 0, for POST with no body -- NOT any more, each leg has to have calcualted content-type
          if (sentHeaders.hasOwnProperty(name)) reqHeaders[name] = sentHeaders[name]; // test without && name !== 'content-length' 
       }
-      console.log("reqHeaders: ", reqHeaders);
    }
    setOptions(vault, reqHeaders, options) {
       // them along options' prototype
@@ -167,9 +165,6 @@ class Options extends EventEmitter {
       options.headers = reqHeaders; // sets headers
       options.cert = vault.cert; // sets certificate (https) 
       options.key = vault.key; // sets private_key used for https encription
-
-
-      //console.log(" OPTIONS(): ", options);
    }
    // gets the body for API request (request for X api with access token)
    getApiBody(req, options) {
@@ -183,14 +178,13 @@ class Options extends EventEmitter {
       this.app; // Can be reference to 'this.req.app' when in Express, or 'this' when in Connect
 
       if (this.request.app) { // check express context
+
          this.app = this.request.app;
-         // console.log('express confirmed');
       }
       else if (this.next) { // For connect context just check if there is 'next' function
+
          EventEmitter.init.call(this); // Call emitter constructor on this object
          this.app = this; // app is 'this', since we are linked to EventEmitter 
-
-         // console.log('Connect confirmed')         
       }
    }
 };

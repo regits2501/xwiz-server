@@ -1,4 +1,4 @@
-import { CustomError } from './lib/twiz-client-utils/src/utils.js' //libstwiz-client-utils';  // borrow util from client
+import { CustomError } from './lib/twiz-client-utils/src/utils.js'
 import { parse } from 'url';
 import  Options from './lib/twiz-server-options/src/Options.js'; // { call, prototype }
 import OAuth from './lib/twiz-server-oauth/src/OAuth.js';
@@ -57,6 +57,7 @@ class PhaseBuilder extends Options {
          'legNotRecognized': 'OAuth leg sent by client is not recognized'
       });
    }
+
    getCurrentLegAction(options) {
       var path = options.legPath;
       var action;
@@ -71,6 +72,7 @@ class PhaseBuilder extends Options {
       this.isLegActionValid(action);
       return action;
    }
+   
    isLegActionValid(action) {
 
       var valid = (action === this.leg[0] || action === this.leg[2]);
