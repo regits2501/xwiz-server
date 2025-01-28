@@ -1,0 +1,33 @@
+{
+  "name": "twiz-server-phaseutils",
+  "version": "1.0.0",
+  "description": "Extends manipulations with phases (twiz-server module)",
+  "main": "src/PhaseUtils.js",
+  "scripts": {
+    "lint": "eslint src/PhaseUtils.js",
+    "test": "nyc mocha test/phaseUtils.js",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gits2501/twiz-server-phaseutils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gits2501/twiz-server-phaseutils/issues"
+  },
+  "author": {
+    "name": "gits2501",
+    "url": "https://github.com/gits2501",
+    "email": "canidomath@yahoo.com"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "nyc": "^11.8.0"
+  },
+  "peerDependencies": {
+    "twiz-server": "^1.0.0"
+  }
+}

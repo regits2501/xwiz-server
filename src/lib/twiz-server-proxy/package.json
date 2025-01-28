@@ -1,0 +1,34 @@
+{
+  "name": "twiz-server-proxy",
+  "version": "1.0.0",
+  "description": "Proxies requests to Twitter ",
+  "main": "src/TwitterProxy.js",
+  "scripts": {
+    "lint": "eslint src/TwitterProxy.js",
+    "test": "nyc mocha test/twitterProxy.js",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "author": "gits2501",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gits2501/twiz-server-proxy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gits2501/twiz-server-proxy/issues"
+  },
+  "author": {
+    "name": "gits2501",
+    "url": "https://github.com/gits2501",
+    "email": "canidomath@yahoo.com"
+  },
+  "devDependencies": {
+    "coveralls": "^3.0.1",
+    "eslint": "^4.19.1",
+    "mocha": "^5.2.0",
+    "nock": "^9.2.6",
+    "node-fixtures": "0.0.1",
+    "node-mocks-http": "^1.7.0",
+    "nyc": "^11.8.0"
+  }
+}
