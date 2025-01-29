@@ -1,8 +1,10 @@
 import { request } from 'https';
 import { parse } from 'url';
 
-
-class TwitterProxy { // TODO rename to XProxy
+/*
+    Https proxy for X(twitter)
+*/
+class XProxy {
    constructor(res, next) {
 
       this.response = res; // client response
@@ -126,5 +128,5 @@ class TwitterProxy { // TODO rename to XProxy
 }   
 
 
-export default TwitterProxy;
+export default XProxy;
 

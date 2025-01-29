@@ -1,92 +1,14 @@
-import { CustomError } from './lib/twiz-client-utils/src/utils.js'
+import { CustomError } from './lib/Utils/src/utils.js';
 import { parse } from 'url';
-import  Options from './lib/twiz-server-options/src/Options.js'; // { call, prototype }
-import OAuth from './lib/twiz-server-oauth/src/OAuth.js';
-import TwitterProxy from './lib/twiz-server-proxy/src/TwitterProxy.js';
-import Upgrade from './lib/twiz-server-phaseutils/src/PhaseUtils.js'; 
+import OAuth from './lib/OAuth/src/OAuth.js';
+import Upgrade from './lib/PhaseUtils/src/PhaseUtils.js';
 
-
-class PhaseBuilder extends Options {
-   constructor(options, vault, args) {
-      // api requests. For example, OAuth leg params, Api params ect...                          
-
-      super(options, vault, args);
-
-      this.leg = ['request_token', '', 'access_token']; // Oauth leg (step) names
-
-      this.phases = {
-         leg: {
-            // access token 
-            toString: function () { return 'leg'; },
-            requestToken: this.leg[0],
-            accessToken: this.leg[2]
-         },
-
-         api: {
-            toString: function () { return 'api'; },
-            plain: 'api',
-            accessProtectedResorces: 'APR'
-         },
-
-         verCredentials: {
-            toString: function () { return 'ver'; },
-            plain: 'ver'
-         }
-      };
-
-      this.Phase = function Phase(name, action, res, next) {
-         this.name = name.toString();
-         this.action = action;
-         this.signRequest = new OAuth(options);
-         this.proxyRequest = new TwitterProxy(res, next);
-      };
-
-      this.legPhase;
-      this.apiPhase;
-
-      this.initPhases = function (req, res, next) {
-
-         this.initOptions(req, res, next); // initOptions
-
-         this.legPhase = new this.Phase(this.phases.leg, this.getCurrentLegAction(options), this.response, this.next); // set current oauth leg phase
-         this.apiPhase = new this.Phase(this.phases.api, this.phases.api.plain, this.response, this.next); // set phase that will run if we alredy have have an access token
-      };
-
-      this.CustomError.call(this);
-      this.addCustomErrors({
-         'legNotRecognized': 'OAuth leg sent by client is not recognized'
-      });
-   }
-
-   getCurrentLegAction(options) {
-      var path = options.legPath;
-      var action;
-
-      for (var i = path.length; i >= 0; i--) { // from end of string search for "/", then substring rest
-         if (path.charAt(i) === '/') {
-            action = path.substring(i + 1);
-            break;
-         }
-      }
-
-      this.isLegActionValid(action);
-      return action;
-   }
-   
-   isLegActionValid(action) {
-
-      var valid = (action === this.leg[0] || action === this.leg[2]);
-      if (!valid) this.next(this.CustomError('legNotRecognized')); // call next(..) with error
-
-   }
-}
+import PhaseBuilder from './lib/PhaseBuilder/PhaseBuilder.js';
 
 class PhaseConfigurator extends PhaseBuilder {
    constructor(args) {
-
-      var vault = {}; // create private object for sensitive user info
-      var options = {}; // create priv object also for possible sensitive info from front end
-
+      const vault = {}; // create private object for sensitive user info
+      const options = {}; // create priv object also for possible sensitive info from front end
 
       super(options, vault, args);
       
@@ -95,7 +17,6 @@ class PhaseConfigurator extends PhaseBuilder {
       this.alternator = {
          run: function (tokenObj) {
             try {
-
                OAuth.safeKeepAccessToken(tokenObj, vault); // safe keep token in vault
                this.switch_(); // choose a phase 
             }
@@ -103,7 +24,7 @@ class PhaseConfigurator extends PhaseBuilder {
                this.errorHandler(err); // handle any errors
             }
          },
-         switch_: function () {
+         switch_: function () { console.log('switch_()')
             if (vault.accessToken) this.apiPhase.run(); // straightforward to twitter api (access token present)
             else this.legPhase.run(); // go for OAuth leg (no access token present)
          },
@@ -126,6 +47,7 @@ class PhaseConfigurator extends PhaseBuilder {
       this.startAlternator = function (req, res, next) {
          try {
             this.initPhases(req, res, next); // initiate phases
+            console.log('startAlternator(): this.legPhase:', this.legPhase)
          } catch (err) {
             this.alternator.errorHandler.bind(this, err); // catch any errors
          }
@@ -148,16 +70,16 @@ class PhaseConfigurator extends PhaseBuilder {
    addUtils() {
 
       this.removeSubstr = function removeSubstr(str, regstr) {
-         var regexp = new RegExp(regstr); // create regexp object from string
-         var removed = str.replace(regexp, ''); // replace regexp pattern with empty string (remove it)
+         const regexp = new RegExp(regstr); // create regexp object from string
+         const removed = str.replace(regexp, ''); // replace regexp pattern with empty string (remove it)
 
          return removed;
       };
 
       this.trimEnd = function (str, endChars) {
-         var endlength = endChars.length; // Lenght of characters we search at the end
-         var strlength = str.length; // Lenght of the string
-         var end = str.slice(strlength - endlength, strlength); // Take end of the string
+         const endlength = endChars.length; // Length of characters we search at the end
+         const strlength = str.length; // Length of the string
+         const end = str.slice(strlength - endlength, strlength); // Take end of the string
 
          if (end === endChars) return str.slice(0, strlength - endlength); // Chars are at the end, slice them 
          else return str; // Or return unchanged string  
@@ -166,12 +88,12 @@ class PhaseConfigurator extends PhaseBuilder {
 
    }
 
-   initAlternator() {
+   initAlternator() { console.log('initAlternator() legphase:', this.legPhase)
       this.alternator.load({ legPhase: this.legPhase, apiPhase: this.apiPhase }); // load it with phases
       this.alternator.next = this.next; // get next reference 
    }
 
-   configurePhases(action, options, vault) {
+   configurePhases(action, options, vault) { console.log('configurePhases() action:', action);
 
       if (action === this.leg[0]) // request_token 
          this.addRequestTokenRun(options, vault);
@@ -183,8 +105,8 @@ class PhaseConfigurator extends PhaseBuilder {
 
    addRequestTokenRun(options, vault) { 
 
-      var legPhase = this.alternator.legPhase;
-      var apiPhase = this.alternator.apiPhase;
+      const legPhase = this.alternator.legPhase;
+      const apiPhase = this.alternator.apiPhase;
 
       legPhase.run = function () { 
 
@@ -239,12 +161,12 @@ class PhaseConfigurator extends PhaseBuilder {
 
       this.addRequestTokenRun(options, vault);
       
-      var alternator = this.alternator;
-      var legPhase = alternator.legPhase;
-      var apiPhase = alternator.apiPhase;
-      var resolve = alternator.resolve; // reference to promise resolver
-      var reject = alternator.reject;
-      var stream = this.requestQueryParams.stream; // flag that indicates stream usage
+      const alternator = this.alternator;
+      const legPhase = alternator.legPhase;
+      const apiPhase = alternator.apiPhase;
+      const resolve = alternator.resolve; // reference to promise resolver
+      const reject = alternator.reject;
+      const stream = this.requestQueryParams.stream; // flag that indicates stream usage
 
 
       legPhase.proxyRequest.finish = function () { 
@@ -252,7 +174,7 @@ class PhaseConfigurator extends PhaseBuilder {
          /* istanbul ignore else */
          if (!stream) { alternator.run(vault.twtData); } // Alternator runs again with possible access token,
 
-         // makes (bultin) api call.
+         // makes (builtin) api call.
          resolve(vault.twtData); // Resolves a promise where access token = twtData
       };
 
@@ -273,7 +195,7 @@ class PhaseConfigurator extends PhaseBuilder {
             return;
          }
 
-         this.twtResponseOnEnd(this.finish.bind(this)); // succesful end
+         this.twtResponseOnEnd(this.finish.bind(this)); // successful end
       };
 
       this.userFinish = function (onEnd) {
@@ -293,11 +215,11 @@ class PhaseConfigurator extends PhaseBuilder {
 
    addVerCredentialsRun(options, vault, params) {
 
-      var legPhase = this.alternator.legPhase; // take current leg phase 
-      var verCredentialsPhase = this.alternator.apiPhase; // the new (changed) apiPhase
-      var apiPhase = this.alternator.saved.apiPhase; // the old (saved) apiPhase
-      var resolve = this.alternator.resolve; // reference to promise resolver
-      var reject = this.alternator.reject;
+      const legPhase = this.alternator.legPhase; // take current leg phase 
+      const verCredentialsPhase = this.alternator.apiPhase; // the new (changed) apiPhase
+      const apiPhase = this.alternator.saved.apiPhase; // the old (saved) apiPhase
+      const resolve = this.alternator.resolve; // reference to promise resolver
+      const reject = this.alternator.reject;
 
       verCredentialsPhase.run = apiPhase.run; // much of the actions(runs) are same as in saved phase
 
@@ -311,11 +233,11 @@ class PhaseConfigurator extends PhaseBuilder {
       verCredentialsPhase.signRequest.setCredentialParams = function (phase, options, params) {
          // 'verify credentials' phase
 
-         var sentParams = parse(options[phase + 'Path'], true).query; // take params for this phase;
-         var verSBS = options[phase + 'SBS'];
-         var verPath = options[phase + 'Path'];
+         const sentParams = parse(options[phase + 'Path'], true).query; // take params for this phase;
+         let verSBS = options[phase + 'SBS'];
+         let verPath = options[phase + 'Path'];
 
-         for (var prop in sentParams) {
+         for (const prop in sentParams) {
             /* istanbul ignore else */
             if (!params.hasOwnProperty(prop)) { // user didn't specify param, remove it
                verPath = options.removeSubstr(verPath, prop + '=[a-z]*&?'); // remove query param from path
@@ -348,14 +270,14 @@ class PhaseConfigurator extends PhaseBuilder {
          this.verCredentialsEnd = function () {
 
             this.twtResponseParseBody(vault); // parse the body to json
-            var credentials = vault.twtData; // take credentials data
+            const credentials = vault.twtData; // take credentials data
             if (!credentials.errors) {
                resolve(credentials); // resolve credentials 
                return;
             }
 
-            this.messages.accessTokenNotVerified = JSON.stringify(credentials); // set value to strigified response
-            var error = this.CustomError('accessTokenNotVerified');
+            this.messages.accessTokenNotVerified = JSON.stringify(credentials); // set value to stringified response
+            const error = this.CustomError('accessTokenNotVerified');
 
             this.next(error); // call error handler
             reject(error); // reject promise      
@@ -372,7 +294,7 @@ class PhaseConfigurator extends PhaseBuilder {
    }
 
    promisify(func) {
-      var alternator = this.alternator;
+      const alternator = this.alternator;
       return new Promise(function (resolve, reject) {
          alternator.resolve = resolve;
          alternator.reject = reject;
@@ -380,14 +302,14 @@ class PhaseConfigurator extends PhaseBuilder {
       });
    }
 
-   emitPhaseEvents() {
+   emitPhaseEvents() { console.log('emitPhaseEvents() legPhase:', this.alternator.legPhase)
       // gives user interface.
-
+   
       switch (this.alternator.legPhase.action) {
          case this.leg[0]:
             this.app.emit(this.eventNames.loadAccessToken,
                this.getRequestTokenInterface(), // get user facing interface for this leg
-               this.verifyAccessToken.bind(this) // to check accesst token 'freshness' 
+               this.verifyAccessToken.bind(this) // to check access token 'freshness' 
             );
             break;
          case this.leg[2]: // access token leg
@@ -401,7 +323,7 @@ class PhaseConfigurator extends PhaseBuilder {
 
    getRequestTokenInterface() {
 
-      var inf = {
+      const inf = {
          OAuth: this.alternator.run.bind(this.alternator, ''), // Run with no access token
          continueOAuth: this.alternator.run.bind(this.alternator, ''), // Alias of the OAuth()
          haste: this.alternator.run.bind(this.alternator) // Run with possible access token
@@ -413,7 +335,7 @@ class PhaseConfigurator extends PhaseBuilder {
 
    getAccessTokenInterface() {
 
-      var inf = {
+      const inf = {
          onEnd: this.userFinish
       };
 
@@ -434,7 +356,7 @@ class PhaseConfigurator extends PhaseBuilder {
          restHost: this.requestQueryParams.apiHost, // rest api domain
          streamHost: 'stream.twitter.com', // stream api domain
          method: this.requestQueryParams.apiMethod, // set method    
-         path: parse(this.requestQueryParams.apiPath, true).pathname, // path whitout query string
+         path: parse(this.requestQueryParams.apiPath, true).pathname, // path without query string
          params: parse(this.requestQueryParams.apiPath, true).query // object with query params
       };
    }
@@ -444,8 +366,8 @@ class PhaseConfigurator extends PhaseBuilder {
    }
    
    verCredentials(tokenObj, params = {}) {
-      var options = PhaseConfigurator.options;
-      var vault = PhaseConfigurator.vault;
+      const options = PhaseConfigurator.options;
+      const vault = PhaseConfigurator.vault;
 
       this.alternator.save({ legRun: this.legPhase.run, apiPhase: this.apiPhase }); // save apiPhase and legRun
 
@@ -461,20 +383,21 @@ class PhaseConfigurator extends PhaseBuilder {
       this.addVerCredentialsRun(options, vault, params); // add its run (actions);
       this.alternator.run(tokenObj); // runs the verCredentials phase
 
-      var saved = this.alternator.saved; // things we saved
+      const saved = this.alternator.saved; // things we saved
       this.alternator.load({ apiPhase: saved.apiPhase, legRun: saved.legRun }); // load back before any changes
    }
 }
 
-PhaseConfigurator.prototype.eventNames = {                // Names of events that are emited
+PhaseConfigurator.prototype.eventNames = {                // Names of events that are emitted
    loadAccessToken: 'hasteOrOAuth',                       // Handler for inserting (loading) access token  
    tokenFound: 'tokenFound'                          // Handler that passes access token to user
 }
 
 export default function (args) {
    return function () {
-      var pc = new PhaseConfigurator(args);
+      const pc = new PhaseConfigurator(args);
       pc.startAlternator.apply(pc, arguments);
    }
 }
+
 

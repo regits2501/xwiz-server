@@ -1,4 +1,4 @@
-import { CustomError, percentEncode } from '../../twiz-client-utils/src/utils.js';
+import { CustomError, percentEncode } from '../../Utils/src/utils.js';
 import hmacSha1 from 'hmac_sha1';
 
  class OAuth {

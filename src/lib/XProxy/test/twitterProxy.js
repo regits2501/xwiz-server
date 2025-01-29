@@ -1,4 +1,4 @@
-var TwitterProxy = require('../src/TwitterProxy');
+var TwitterProxy = require('../src/XProxy');
 var EventEmitter = require('events').EventEmitter;
 var fx           = require('node-fixtures');       // loads fixtures from test/fixtures
 var httpMocks    = require('node-mocks-http');     // mock request/response pair (mocks received client request)

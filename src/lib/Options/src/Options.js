@@ -1,4 +1,4 @@
-import { CustomError } from '../../twiz-client-utils/src/utils.js';
+import { CustomError } from '../../Utils/src/utils.js';
 import { EventEmitter } from 'events';
 import { parse } from 'url';
 
@@ -7,28 +7,28 @@ class Options extends EventEmitter {
       super();
 
       vault.consumer_key = '', // app's consumer key
-         vault.consumer_secret = '',
-         vault.cert = "", // certificate (can be selfsigned)
-         vault.key = ""; // private key (used for https encription)
+      vault.consumer_secret = '',
+      vault.cert = "", // certificate (used in https - can be selfsigned)
+      vault.key = "";  // private key (used for https)
 
 
       var reqHeaders = {
          'accept': '',
          'accept-language': '',
-         'content-length': '' // must be zero when method is POST with no body
+         'content-length': ''
       };
 
       function addParams() {
-         this.apiSBS = ''; // SBS for api calls
-         this.apiAH = ''; // Ah for api calls
+         this.apiSBS = ''; // Signature Base String for api calls
+         this.apiAH = '';  // Autorization Header for api calls
          this.apiHost = ''; // host we hit for api calls
          this.apiPath = '';
          this.apiMethod = '';
          this.apiBody = ''; // body for api call is received from request body, body of each leg is legSBS (signature base string)        
 
 
-         this.legSBS = ''; // Signature base string for OAuth legs (steps)
-         this.legAH = ''; // Authorization header string
+         this.legSBS = ''; // SBS for OAuth legs (steps)
+         this.legAH = '';  // AH string
          this.legHost = '';
          this.legPath = '';
          this.legMethod = '';
@@ -58,27 +58,27 @@ class Options extends EventEmitter {
          twiz: '[twiz-server] ',
          consumerKeyNotSet: "You must provide consumer_key which identifies your app",
          consumerSecretNotSet: "You must provide consumer_secret which identifies your app",
-         // certNotSet: "You must provide cert (certificate) used in https encription when connecting to twitter.",
-         // keyNotSet: "You must provide key (private key) used in https encription when connecting to twitter",
          requestNotSet: "You must provide request (read) stream",
          responseNotSet: "You must provide response (write) stream"
       });
 
       this.initOptions = function init(req, res, next) {
-         // Encompases server logic 
          args.request = req;
          args.response = res;
          args.next = next;
 
          this.setUserParams(args, vault); // Params needed for this lib to work
-         this.getRequestParamsAndHeaders(reqHeaders); // Options sent in query portion of client request url and headers
-         this.setOptions(vault, reqHeaders, options); // sets options used for twitter request
+         this.getRequestParamsAndHeaders(reqHeaders); // get url parameters and headers
+         this.setOptions(vault, reqHeaders, options); // sets options used in X request
          this.getApiBody(req, options); // get the body for api request (request with access token)
          this.setAppContext();
       };
 
    }
+
+   // set needed user parameters
    setUserParams(args, vault) {
+
       for (var name in args) {
          switch (name) {
             case "next":
@@ -108,17 +108,13 @@ class Options extends EventEmitter {
       this.checkAllParams(vault); // checks that all important params are in place
 
    }
+
+   // check for needed user parameters
    checkAllParams(vault) {
 
       for (var name in vault) {
 
          switch (name) {
-            // case "key":
-            //    if(!vault[name]) throw this.CustomError('keyNotSet');
-            // break;
-            // case "cert":
-            //    if(!vault[name]) throw this.CustomError('certNotSet');  
-            // break;
             case "consumer_key":
                if (!vault[name]) throw this.CustomError('consumerKeyNotSet');
                break;
@@ -132,62 +128,58 @@ class Options extends EventEmitter {
       if (!this.response) throw this.CustomError('responseNotSet');
    }
 
+   // extract query parameters and headers
    getRequestParamsAndHeaders(reqHeaders) {
 
       this.requestQueryParams = parse(this.request.url, true).query; // parses options sent in client request url
-      this.getRequestHeaders(reqHeaders); // gets headers from client request and puts them in reqHeaders
+      this.getRequestHeaders(reqHeaders);
    }
 
+   // get the needed headers from client request
    getRequestHeaders(reqHeaders) {
-      // is supported ( is in reqHeaders)
-      var sentHeaders = this.request.headers; // headers from request stream
-      for (var name in reqHeaders) { // omiting content-length, since it must be 0, for POST with no body -- NOT any more, each leg has to have calcualted content-type
-         if (sentHeaders.hasOwnProperty(name)) reqHeaders[name] = sentHeaders[name]; // test without && name !== 'content-length' 
+
+      var sentHeaders = this.request.headers;
+      for (var name in reqHeaders) {
+         if (sentHeaders.hasOwnProperty(name)) reqHeaders[name] = sentHeaders[name];
       }
    }
+
+   // set options for a request
    setOptions(vault, reqHeaders, options) {
-      // them along options' prototype
-      // chain if those
-      // param names exists in prototype 
+
       for (var name in options) {
          if (this.requestQueryParams[name])
-            options[name] = this.requestQueryParams[name]; // If requestQueryParams has that 
-
-
-
-
-         // property and it is not undefined.
-         // Querystring object is not 
-         // connected to Object from node 6.0
-         // It doesnt have hasOwnProperty(..)
+            options[name] = this.requestQueryParams[name];
       }
 
       options.headers = reqHeaders; // sets headers
-      options.cert = vault.cert; // sets certificate (https) 
-      options.key = vault.key; // sets private_key used for https encription
+      options.cert = vault.cert;    // sets certificate (https) 
+      options.key = vault.key;      // sets private_key used for https encription
    }
-   // gets the body for API request (request for X api with access token)
+
+   // gets the body for X API request (with access token)
    getApiBody(req, options) {
 
-      req.on('data', chunk => {
+      req.on('data', (chunk) => {
          options.apiBody = options.apiBody ? `${options.apiBody}${chunk}` : chunk;
       });
 
    }
+
    setAppContext() {
-      this.app; // Can be reference to 'this.req.app' when in Express, or 'this' when in Connect
+      this.app; // can be reference to 'this.req.app' when in Express, or 'this' when in Connect
 
       if (this.request.app) { // check express context
 
          this.app = this.request.app;
       }
-      else if (this.next) { // For connect context just check if there is 'next' function
+      else if (this.next) { // for connect context just check if there is 'next' function
 
-         EventEmitter.init.call(this); // Call emitter constructor on this object
-         this.app = this; // app is 'this', since we are linked to EventEmitter 
+         EventEmitter.init.call(this); 
+         this.app = this;  
       }
    }
-};
+}
 
 
 export default Options;
