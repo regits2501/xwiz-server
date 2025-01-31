@@ -1,4 +1,4 @@
-import Options from '../Options/src/Options.js'
+import XRequestOptions from '../XRequestOptions/src/XRequestOptions.js'
 import XProxy from '../XProxy/src/XProxy.js';
 import OAuth from '../OAuth/src/OAuth.js';
 
@@ -8,14 +8,14 @@ import OAuth from '../OAuth/src/OAuth.js';
    Used to create Phases, a phase can be:
      * An OAuth 1.0a leg - request token, access token leg
      * Verify credentials - verification of user's access token
-     * (X) API phase - accessing an X platform api with access token (in behalf of user)
+     * (X) API phase - accessing X platform API with user's access token
 */
-export default class PhaseBuilder extends Options {
+export default class PhaseBuilder extends XRequestOptions {
     constructor(options, vault, args) {
                               
        super(options, vault, args);
  
-       this.leg = ['request_token', '', 'access_token']; // Oauth leg (step) names
+       this.leg = ['request_token', '', 'access_token']; // OAuth leg names
  
        this.phases = {
 
@@ -52,7 +52,6 @@ export default class PhaseBuilder extends Options {
  
           this.initOptions(req, res, next);
 
-          console.log('options:', options);
           this.legPhase = new this.Phase(this.phases.leg, this.getLegAction(options.legPath), this.response, this.next); // set current oauth leg phase
           this.apiPhase = new this.Phase(this.phases.api, this.phases.api.plain, this.response, this.next); // set phase that will run if we have an access token
        };

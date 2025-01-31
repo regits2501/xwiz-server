@@ -1,6 +1,9 @@
 import { CustomError, percentEncode } from '../../Utils/src/utils.js';
 import hmacSha1 from 'hmac_sha1';
 
+/**
+ *  Defines OAuth 1.0.a for X platform
+ */
  class OAuth {
 
    constructor(options) {
@@ -24,7 +27,6 @@ import hmacSha1 from 'hmac_sha1';
 
    static checkAccessToken(tokenObj) {
       if (!tokenObj.oauth_token) {
-         console.log('throw ERROR');
          throw this.CustomError('oauthTokenMissing');
       }
 
@@ -110,17 +112,17 @@ import hmacSha1 from 'hmac_sha1';
    }
 
    finalizeOptions(options, phase) {
-      options.host = options[phase + 'Host']; // when you start sending pref+ Host in  queryString
+      options.host = options[phase + 'Host'];
       options.path = options[phase + 'Path'];
       options.method = options[phase + 'Method'];
 
       options.headers.authorization = options[phase + 'AH']; // sets authorization header 
    }
    
-   /*
+   /**
          Set options for API phase (X api call with access token)
          MUST HAVE: "content-type" and "content-length" headers and a request body (body for the api request)
-      */
+   */
    finalizeApiPhaseOptions(options, phase) {
 
       // Set general options
@@ -136,11 +138,11 @@ import hmacSha1 from 'hmac_sha1';
       }
 
    }
-   /*
+   /**
          Set options for OAUTH leg phases
          MUST HAVE: "content-length" header and a request body (body is legSBS - signature base string for the leg)
-         MUST NOT HAVE: "content-type" header, if there is a content-type set the X will not be able to authenticate OAuth leg request
-      */
+         MUST NOT HAVE: "content-type" header, if there is a content-type, X will not be able to authenticate OAuth leg request
+   */
    finalizeLegPhaseOptions(options, phase) { 
 
       // Set general options

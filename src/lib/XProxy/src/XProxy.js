@@ -1,7 +1,7 @@
 import { request } from 'https';
 import { parse } from 'url';
 
-/*
+/**
     Https proxy for X(twitter)
 */
 class XProxy {

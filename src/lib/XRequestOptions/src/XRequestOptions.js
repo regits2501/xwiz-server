@@ -2,7 +2,10 @@ import { CustomError } from '../../Utils/src/utils.js';
 import { EventEmitter } from 'events';
 import { parse } from 'url';
 
-class Options extends EventEmitter {
+/*
+*  Builds options for a request to X platform 
+*/
+class XRequestOptions extends EventEmitter {
    constructor(options, vault, args) {
       super();
 
@@ -182,4 +185,4 @@ class Options extends EventEmitter {
 }
 
 
-export default Options;
+export default XRequestOptions;
