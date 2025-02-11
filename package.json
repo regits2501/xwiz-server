@@ -1,11 +1,11 @@
 {
-  "name": "twiz-server",
-  "version": "1.0.0-beta.3",
-  "description": "Twitter OAuth 1.0a library, gets you an access token , supports REST and STREAM apis (node.js part) ",
-  "main": "src/twiz-server.js",
+  "name": "xwiz-server",
+  "version": "1.0.0",
+  "description": "X OAuth 1.0a library, gets you an access token , supports REST and STREAM apis (node.js part) ",
+  "main": "src/xwiz-server.js",
   "scripts": {
-    "lint": "eslint src/twiz-server.js",
-    "test": "nyc mocha test/twizServer.js",
+    "lint": "eslint src/xwiz-server.js",
+    "test": "nyc mocha test/xwizServer.js",
     "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   
@@ -15,25 +15,25 @@
 
   "keywords": [
     "authentication",
-    "twitter",
+    "X",
     "OAuth 1.0a",
     "authorize",
     "authenticate",
     "stream",
     "chunk",
     "3-leg",
-    "Sign in"
+    "Sign in with X"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/gits2501/twiz-server.git"
+    "url": "https://github.com/regits2501/xwiz-server.git"
   },
   "bugs": {
-    "url": "https://github.com/gits2501/twiz-server/issues"
+    "url": "https://github.com/regits2501/xwiz-server/issues"
   },
   "author": {
     "name": "gits2501",
-    "url": "https://github.com/gits2501",
+    "url": "https://github.com/regits2501",
     "email": "canidomath@yahoo.com"
   },
   "license": "GPL-3.0-only",
