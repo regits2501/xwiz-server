@@ -21,9 +21,6 @@ class XProxy {
 
    createTwtRequest(options, twtResponseHandler) {
 
-      console.log('createTwitterRequest(): options:', options);
-
-
       this.twtRequest = request(options, function (res) {
          this.twtResponse = res;
          twtResponseHandler();
@@ -41,12 +38,11 @@ class XProxy {
       this.twtRequest.on('error', function (err) { this.next(err); }.bind(this));
    }
 
-   twtRequestSend() {
+   twtRequestSend() { 
       this.twtRequest.end(); // sends request to twitter
    }
 
    twtResponseOnFailure(phase) { // TODO rename this to isXRequestFailed
-      
 
       if (this.twtResponse.statusCode >= 200 && this.twtResponse.statusCode < 300) return false;
 
@@ -61,7 +57,7 @@ class XProxy {
       return true;
    }
 
-   twtResponsePipeBack(action) {
+   twtResponsePipeBack(action) { 
 
       if (action === 'request_token') this.setRequestTokenHeaders(); // apply content-type fix
 
@@ -100,6 +96,7 @@ class XProxy {
 
 
    }
+
    twtResponseReceiveBody(vault, encoding) {
       
       vault.twtData = '';
@@ -108,7 +105,7 @@ class XProxy {
       });
    }
 
-   twtResponseOnEnd(func) {
+   twtResponseOnEnd(func) { 
       this.twtResponse.on('end', func);
    }
 

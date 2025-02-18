@@ -48,9 +48,9 @@ export default class PhaseBuilder extends XRequestOptions {
        this.legPhase;
        this.apiPhase;
  
-       this.initPhases = function (req, res, next) {
+       this.initPhases = async function (req, res, next) {
  
-          this.initOptions(req, res, next);
+          await this.initOptions(req, res, next);
 
           this.legPhase = new this.Phase(this.phases.leg, this.getLegAction(options.legPath), this.response, this.next); // set current oauth leg phase
           this.apiPhase = new this.Phase(this.phases.api, this.phases.api.plain, this.response, this.next); // set phase that will run if we have an access token
@@ -69,7 +69,6 @@ export default class PhaseBuilder extends XRequestOptions {
 
        this.verifyLegAction(action);
        
-       console.log(`action: |${action}|`)
        return action;
     }
 

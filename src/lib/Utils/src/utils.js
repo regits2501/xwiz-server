@@ -17,7 +17,7 @@ function formEncode(dataObj, spaces) { // form encodes an object (optionaly chan
    var type;
    for (var name in dataObj) {
       type = typeof dataObj[name];
-      if (dataObj.hasOwnProperty(name) && type !== "function" && dataObj[name] !== "null") { // only props 
+      if (dataObj.hasOwnProperty(name) && type !== 'function' && dataObj[name] !== 'null') { // only props 
          // in dataObj 
          key = percentEncode(name);   // encode property name
 
@@ -28,25 +28,26 @@ function formEncode(dataObj, spaces) { // form encodes an object (optionaly chan
          else value = percentEncode(dataObj[name]) // property is not object, percent encode it
 
          if (!spaces) {
-            key = key.replace(/%20/g, "+")
-            value = value.replace(/%20/g, "+"); // substitute space encoding for +
+            key = key.replace(/%20/g, '+')
+            value = value.replace(/%20/g, '+'); // substitute space encoding for +
          }
 
-         pairs.push(key + "=" + value)
+         pairs.push(key + '=' + value)
       }
    }
 
-   return pairs.join("&");
+   return pairs.join('&');
 }
 
 
 function CustomError() {
 
-   this.messages = {}; // error messages place holder    
+   this.messages = {}; // error messages place holder
 
 
    this.addCustomErrors = function (errors) {  // add custom error messages
 
+      // eslint-disable-next-line array-callback-return
       Object.getOwnPropertyNames(errors).map(function (name) {
 
          this.messages[name] = errors[name];
@@ -56,7 +57,7 @@ function CustomError() {
    this.CustomError = function (name) {// uses built-in Error func to make custom err info
 
       var err = Error(this.messages[name]);      // take message text
-      err['name'] = name;                          // set error name
+      err.name = name;                          // set error name
       return err;
    }
 

@@ -1,8 +1,9 @@
 {
   "name": "xwiz-server",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "X OAuth 1.0a library, gets you an access token , supports REST and STREAM apis (node.js part) ",
   "main": "src/xwiz-server.js",
+  "type": "module",
   "scripts": {
     "lint": "eslint src/xwiz-server.js",
     "test": "nyc mocha test/xwizServer.js",

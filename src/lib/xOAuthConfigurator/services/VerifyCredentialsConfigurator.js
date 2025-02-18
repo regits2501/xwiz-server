@@ -18,7 +18,7 @@ export default class VerifyCredentialsConfigurator {
 
         verCredentialsPhase.run = savedApiPhase.run; // much of the actions(runs) are same as in saved phase
 
-        verCredentialsPhase.signRequest.run = function (phase) {
+        verCredentialsPhase.signRequest.run = function (phase) { 
 
             this.setCredentialParams(phase, options, params); // set params that user specified
             savedApiPhase.signRequest.run.call(this, phase); // sign the request
@@ -60,7 +60,7 @@ export default class VerifyCredentialsConfigurator {
             this.twtResponseOnError(); // handle error
             this.twtResponseReceiveBody(vault, 'utf8'); // place body in vault       
 
-            this.verCredentialsEnd = function () {
+            this.verCredentialsEnd = function () {  
 
                 this.twtResponseParseBody(vault); // parse the body to json
                 const credentials = vault.twtData; // take credentials data

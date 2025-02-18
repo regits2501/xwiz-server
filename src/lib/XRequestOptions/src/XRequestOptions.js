@@ -9,16 +9,15 @@ class XRequestOptions extends EventEmitter {
    constructor(options, vault, args) {
       super();
 
-      vault.consumer_key = '', // app's consumer key
-      vault.consumer_secret = '',
-      vault.cert = "", // certificate (used in https - can be selfsigned)
+      vault.consumer_key = '', // X app consumer key
+      vault.consumer_secret = '', // X app consumer secret
+      vault.cert = "", // certificate (used in https - can be self signed)
       vault.key = "";  // private key (used for https)
 
 
-      var reqHeaders = {
+      let reqHeaders = {
          'accept': '',
          'accept-language': '',
-         'content-length': ''
       };
 
       function addParams() {
@@ -65,7 +64,8 @@ class XRequestOptions extends EventEmitter {
          responseNotSet: "You must provide response (write) stream"
       });
 
-      this.initOptions = function init(req, res, next) {
+      this.initOptions = async function init(req, res, next) {
+
          args.request = req;
          args.response = res;
          args.next = next;
@@ -73,7 +73,7 @@ class XRequestOptions extends EventEmitter {
          this.setUserParams(args, vault); // Params needed for this lib to work
          this.getRequestParamsAndHeaders(reqHeaders); // get url parameters and headers
          this.setOptions(vault, reqHeaders, options); // sets options used in X request
-         this.getApiBody(req, options); // get the body for api request (request with access token)
+         await this.getApiBody(req, options); // get the body for api request (request with access token)
          this.setAppContext();
       };
 
@@ -82,7 +82,7 @@ class XRequestOptions extends EventEmitter {
    // set needed user parameters
    setUserParams(args, vault) {
 
-      for (var name in args) {
+      for (let name in args) {
          switch (name) {
             case "next":
                this.next = args[name];
@@ -115,7 +115,7 @@ class XRequestOptions extends EventEmitter {
    // check for needed user parameters
    checkAllParams(vault) {
 
-      for (var name in vault) {
+      for (let name in vault) {
 
          switch (name) {
             case "consumer_key":
@@ -141,8 +141,8 @@ class XRequestOptions extends EventEmitter {
    // get the needed headers from client request
    getRequestHeaders(reqHeaders) {
 
-      var sentHeaders = this.request.headers;
-      for (var name in reqHeaders) {
+      let sentHeaders = this.request.headers;
+      for (let name in reqHeaders) {
          if (sentHeaders.hasOwnProperty(name)) reqHeaders[name] = sentHeaders[name];
       }
    }
@@ -150,7 +150,7 @@ class XRequestOptions extends EventEmitter {
    // set options for a request
    setOptions(vault, reqHeaders, options) {
 
-      for (var name in options) {
+      for (let name in options) {
          if (this.requestQueryParams[name])
             options[name] = this.requestQueryParams[name];
       }
@@ -161,12 +161,31 @@ class XRequestOptions extends EventEmitter {
    }
 
    // gets the body for X API request (with access token)
-   getApiBody(req, options) {
+   async getApiBody(req, options) {
+      // start receiving request body
+      this.startReceivingBody(req, options);
+
+      await this.waitUntilBodyIsReceived(req);
+   }
+
+   startReceivingBody(req, options) {
 
       req.on('data', (chunk) => {
+
+         // add chunks to apiBody
          options.apiBody = options.apiBody ? `${options.apiBody}${chunk}` : chunk;
       });
+   }
 
+   async waitUntilBodyIsReceived(req) {
+
+      new Promise((resolve) => {
+
+         // subscribe to 'end' that is emmited when complete body is received
+         req.on('end', function onReqestEndEvent() {
+            resolve();
+         })
+      })
    }
 
    setAppContext() {
@@ -178,8 +197,8 @@ class XRequestOptions extends EventEmitter {
       }
       else if (this.next) { // for connect context just check if there is 'next' function
 
-         EventEmitter.init.call(this); 
-         this.app = this;  
+         EventEmitter.init.call(this);
+         this.app = this;
       }
    }
 }

@@ -1,5 +1,5 @@
 # Additional use
-Check [usage](/README.md#usage) before continuing (recomended).
+Check [examples](/README.md#examples) before continuing (recomended).
 
 ### Contents
   * [Stream](#stream)
@@ -11,20 +11,22 @@ Check [usage](/README.md#usage) before continuing (recomended).
 
 ## Stream 
 
-With twiz using stream means using third party `STREAM` and/or `REST` libraries, while letting twiz to take care **only** for user `authentication`, that is getting an `access token`. In other words stream efectively turns off built in `REST` capability.
+With xwiz using stream means using third party `STREAM` and/or `REST` libraries, while letting xwiz to take care **only** for user `authentication`, that is getting an `access token`. In other words stream efectively turns off built in `REST` capability.
 Specify stream in client by passing `args.stream = true`. 
 
 _**browser:**_
 ```js
   ...
-  let twizlent = twizClient();
+  import xwizClient from './xwiz-client_bundle.js'
+
+  let xwizlent = xwizClient();
 
   let args = {
      server_url: 'myServer.com/route',
      ...
      ...
      stream: true , // Indicate that you want to use 'your own' Stream and/or REST libs 
-     options : {              // twitter request options
+     options : {              // X request options
         path:   'media/upload',
         method: 'POST',
         params: {
@@ -33,27 +35,19 @@ _**browser:**_
            ... 
         }
      }
-  }
- 
-  twizlent.OAuth(args)
-  .then(..)          
-     
-  ...
-  ...
-  twizlent.finishOAuth(args)
-  .then(..)
- 
+  } 
 ```
 Then on server you can do the following:
 
 _**node.js:**_
 ```js
-   app.use(twizer)                                           // instance of twiz-server
+   ...
+   app.use(xwizer)                                           // instance of xwiz-server
 
-   app.on('hasteOrOAuth', function(twiz, verifyCredentials){
+   app.on('hasteOrOAuth', function(xwiz, verifyCredentials){
                                   // Here we presume access token is already loaded from your storage
        if(!accessToken){
-         twiz.continueOAuth();    // we continue OAuth when we don't have access token
+         xwiz.continueOAuth();    // we continue OAuth when we don't have access token
          return;
        }
        
@@ -62,26 +56,26 @@ _**node.js:**_
  
        verifyCredentials(accessToken, {skip_status: true})              
        .then(function fullfiled(credentials){
-            if(twiz.stream){                          // Check that user indicated stream
-               app.options     = twiz.twitterOptions; // Twitter request options as in the args.options on client
+            if(xwiz.stream){                          // Check that user indicated stream
+               app.options     = xwiz.twitterOptions; // X request options as in the args.options on client
                app.accessToken = accessToken;         // save access token to app (just as an example)     
-               twiz.next()                            // Jump to next middleware, here it's 'myStream(..)'                                 
+               xwiz.next()                            // Jump to next middleware, here it's 'myStream(..)'                                 
             }
-            else twiz.haste(accessToken);            // maybe you'll want haste
+            else xwiz.haste(accessToken);            // maybe you'll want haste
        }, function rejected(err){
             // ...
        })
    })
 
-   app.on('tokenFound', function(found, twiz){
+   app.on('tokenFound', function(found, xwiz){
        
        found
        .then(function fullfiled(accessToken){
          
-           if(twiz.stream){
-              app.options     = twiz.twitterOptions; // Save twitter request options
+           if(xwiz.stream){
+              app.options     = xwiz.twitterOptions; // Save X request options
               app.accessToken = accessToken;         // Save access token
-              twiz.next()                            // Jump to next middleware, here it is 'myStream(..)'
+              xwiz.next()                            // Jump to next middleware, here it is 'myStream(..)'
            }            
 
        }, function rejected(err){
@@ -111,9 +105,9 @@ Instead of baking in something like `onStream(..)` function that would handle yo
 
  property  |  description
 ---------  |  ------------- 
-twiz.stream | Flag that indicates request wants third party `stream`/`rest` capability
-twiz.twitterOptions | Your `args.options` from browser, has `path`, `method` and `params` properties
-twiz.next | Reference to Express' `next()` function which runs next middleware (myStream in example)
+xwiz.stream | Flag that indicates request wants third party `stream`/`rest` capability
+xwiz.twitterOptions | Your `args.options` from browser, has `path`, `method` and `params` properties
+xwiz.next | Reference to Express' `next()` function which runs next middleware (myStream in example)
 
 So you can easily see something like `onStream` handler that:
  
@@ -121,7 +115,7 @@ So you can easily see something like `onStream` handler that:
  2. saves `twitterOptions`/`accessToken` to apropriate places to be used in the next middleware 
  3. when it's done doing its thing, calls the next middleware
 
-As you can see, twiz is not keen to stuff potentialy security sensitive data to `app` or `req` objects. It is given to your judgement to place your data where you see fit. `app` is used as storage in example just as an ilustration of a purpose, maybe you would want some caching solution like `redis`/`memcache`. 
+As you can see, xwiz is not keen to stuff potentialy security sensitive data to `app` or `req` objects. It is given to your judgement to place your data where you see fit. `app` is used as storage in example just as an ilustration of a purpose, maybe you would want some caching solution like `redis`/`memcache`. 
 
 
 ## Chunked responses 
@@ -171,58 +165,82 @@ By setting `chunked` you dont have to worry about sending `content-type`, it wil
 
 There is an interesting capability provided by the [OAuth 1.0a](https://oauth.net/core/1.0a/) spec section `6.2.3`. "The callback URL `MAY` include Consumer provided query parameters. The Service Provider `MUST` retain them unmodified and append the `OAuth` parameters to the existing query".
 
- This relates to `OAuth` step 2. When we redirect user to twitter for obtaining `authorization` we are *sending* a `callback url` (I've called it `redirection_url`) along with `request token` (not shown in diagrams), which twitter uses to (re)direct user back to app when authorization is done. In that url we can piggy-back arbitrary data as query params, to twitter and back to app. Then, when we are (re)directed back to app, we can take back that data. The result is that we have a simple mechanism that allows our data to survive redirections, that is changing window contexts in browser. Which is handy in cases when we have the `SPA` workflow and everthing happens in one window tab, so data we send from our app's window context can *survive* changing that context to the context of twitter's window on which `authorization` happens and then again finally our apps' window context.
+ This relates to `OAuth` step 2. When we redirect user to X for obtaining `authorization` we are *sending* a `callback url` (I've called it `redirection_url`) along with `request token` (not shown in diagrams), which X uses to (re)direct user back to app when authorization is done. In that url we can piggy-back arbitrary data as query params to X and back to app. Then, when we are (re)directed back to app, we can take back that data. The result is that we have a simple mechanism that allows our data to survive redirections, that is changing window contexts in browser. Which is handy in cases when we have the `SPA` workflow and everthing happens in one window tab, so data we send from our app's window context can *survive* changing that context to the context of X' window on which `authorization` happens and then again finally our apps' window context.
 
  This can also be used for web site workflows, but you'le get the `o.window` reference in that case which also can be used for exact same thing. This mechanism comes in hand when you are in a place like [github pages](https://pages.github.com/) and don't have access to a database there and/or your are not currently interested in puting a database solution on a server. Here is how you can use it:
 
 ### SPA
 _**browser:**_
 ```js
- //  code in https://myApp.com
-  let twizlent = twizClient();
+  //  code in https://myApp.com
+
+  import xwizClient  from "./xwiz-client_bundle.js";
+  
+  let xwizlent = xwizClient();
   
   btn.addListener('onClick', function(){                  // lets say we initiate oauth on click event
      let args = {
-        server_url:      'https://myServer.com/route',    // address of your node server where twiz-server runs
-        redirection_url: 'https://myApp.com/popUpWindow', // address of your popUp/window page
-         
-        session_data: {                                  // our  arbitrary session data we want 
+        
+        // address of your node server where xwiz-server runs
+        server_url: 'https://myServer.com/xwiz-server-route',   
+        
+        // location of your popup window page
+        redirection_url: 'https://myApp.com/popUpWindow',
+          
+        // your arbitrary data that is appended to redirection_url as query parameters 
+        // you could put here your X request options, so your data can 'survive' redirection
+        session_data: {                                 
            weater: 'Dry, partly cloudy with breeze.',
            background_noise: 'cicada low frequency',
            intentions: 'lawfull good'
-        }                                            
+        }
+
+        // window popup options (optional)
         new_window: {
            name: 'myPopUpWindow',
            features: 'resizable=yes,height=613,width=400,left=400,top=300'
         },
-
-        options: {                                         //  twitter request options  
+        
+        //  X request options  
+        options: {                                        
            method: 'POST',
-           path:   'statuses/update.json'
-           params: {
-             status: "Hooray, new tweet!"
-           }
+           path:   '/2/tweets',
+           body: {
+             text: "Hooray, new tweet!"
+           },
+           encoding: 'json'
         }
      }
      
-     twiz.OAuth(args)
-     .then(..)
+     try {
+
+        let res = xwizlent.OAuth(args)
+        ... 
+     }
+     catch(e){
+       console.log(e);
+     }
   })
 
 ```
- _**browser(different page):**_
+Code for https://myApp.com/popUpWindow
+
  ```js
-  // https://myApp.com/popUpWindow
+
+  
+  import xwizClient  from "./xwiz-client_bundle.js";
   let twizlent = twizClient();
 
-  let sessionData = twizlent.getSessionData();   // Gets our session_data from re(direction) url 
-                                                 // Can also be called asap in page 
+  // Gets our session_data from redirection_url 
+  let sessionData = twizlent.getSessionData();  
+                                                 
  
- sessionData // {                                    // data we sent              
-           weater: 'Dry, partly cloudy with breeze.',
-           background_noise: 'cicada low frequency',
-           intentions: 'lawfull good'
-        }                                                                   
+  console.log(sessionData); 
+  /* {              
+      weater: 'Dry, partly cloudy with breeze.',
+      background_noise: 'cicada low frequency',
+      intentions: 'lawfull good'
+  }*/                                                                   
   ...     
 ```
 If there is no `session data` in url, function returns `undefined` and logs warning on console `noSessionData: 'Unable to find session data in current url'`
@@ -230,37 +248,43 @@ If there is no `session data` in url, function returns `undefined` and logs warn
 ## onEnd 
 ### [⬑](#contents)
 
-In `tokenFound` handler `twiz` has the `onEnd(..)` function available.
+In `tokenFound` handler `xwiz` has the `onEnd(..)` function available.
 It's use is to specify your own function that will end the request as you see fit. For instance when you would like to use a template engine. `onEnd(..)` fires after `access protected resources` (api) call but it does not end the response.
 
 _**node.js:**_
 ```js
-  app.on('tokenFound', function(found, twiz){
+  app.on('tokenFound', aync function(found, xwiz){
 
-     found                        
-     .then(function(accessToken){
-         // user's access token received from twitter which you can put in database
-         
-     }, function rejected(err){   // twiz errors
+     xwiz.onEnd(async function setUserName(apiData, res) {
 
-     })
+        await token
+        /* 
+          Happens after accessToken is found and API data received
+           Uses server side template engine 
+        */
+        res.render('signedInUI', { user: apiData.someData })   
+    })
 
-     twiz.onEnd(function(apiData, res){                          // Happens after accessToken is found and api data received
-         res.render('signedInUI', { user: apiData.user.name })   // Uses server side template engine
-                                                                 // Ends response internally
-     })
+    try {
+     
+        // user's access token received from X that you can put in database
+        let accessToken = await token;
+
+    } catch (e) {
+        console.log(e);
+    }
   })
 ```
 
-When we get the `access token` in our promise then twiz gets api data and calls your `onEnd(..)` callback with that data and response stream.
-So we've sent the rendered html with `user.name` from data we got from  twitter's `statuses/update.json`
+When we get the `access token` in our promise then xwiz gets api data and calls your `onEnd(..)` callback with that data and response stream.
+So we've sent the rendered html with `user.name` from data we got from  X's `/2/tweets`
 api. When you are specifying the `onEnd(..)` function then it must end the response or else the request will hang. 
 
 Also if your workflow requires front-end template rendering. You can instead of `res.render(..)` use :
 ```js
 res.redirect(302,'/signedInUI');  // redirects the client to the signedInUI template
 ```
-Then the `twizlent.finishOAuth(..)` will get this `signedInUI` template in it's `o.data`.
+Then the `twizlent.finishOAuth(..)` will get this `signedInUI` template in it's `res.data`.
 
 ## beforeSend 
 ### [⬑](#contents)
@@ -269,21 +293,24 @@ On client side the `args.options` object can also have a `beforeSend` property. 
 
 _**browser:**_
 ```js   
-// https://myApp.com
+  // https://myApp.com
   btn.addListener('onClick', function(){                  // lets say we initiate oauth on click event
      let args = {
         ...
         ...
-        options:{                                         //  twitter request options  
+        options:{                                         //  X request options  
            method: 'POST',
-           path:   'statuses/update.json'
-           params: {
-             status: "Hooray, new tweet!"
+           path:   '/2/tweets'
+
+           body: {
+             text: "Hooray, new tweet!"
            },
+           encoding:'json',
+           
            beforeSend: function(xhr){
               // xhr.open(..) is called for you, dont do it
        
-                 xhr.setRequestHeader('X-My-Header-Name', 'yValue') // in case you whould ever need something like this
+                 xhr.setRequestHeader('X-My-Header-Name', 'value') // in case you need something like this
 
               // xhr.send(..) is called for you, dont do it
            }
@@ -319,13 +346,18 @@ args = {
    
 }
 
+
+let xwizlent = xwizClient();
+
 try{
-   let twizlent = twizClient();
-   twizlent.OAuth(args)
+
+   let res = xwizlent.OAuth(args);
+   ...
 }
-catch(err){
-   // twiz errors
+catch(e){
+   // xwiz errors
+   console.log(e);
 }
 ```
 
-If promise is not available and there is no `callback` specified you'le get and error `noCallbackFunc` see [errors](/README.md#errors)
+If promise is not available and there is no `callback` specified you'le get and error `noCallbackFunc` see [errors](/README.md#errors).

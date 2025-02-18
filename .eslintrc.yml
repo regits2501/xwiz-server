@@ -3,6 +3,9 @@ env:
   node: true
 extends: 'eslint:recommended'
 rules:
+  languageOptions:
+    - ecmaVersion: 5
+    - sourceType: 'module'
   accessor-pairs: error
   array-bracket-newline: error
   array-bracket-spacing:
@@ -51,7 +54,6 @@ rules:
   generator-star-spacing: error
   getter-return: error
   global-require: error
-  guard-for-in: error
   handle-callback-err: error
   id-blacklist: error
   id-length: 'off'

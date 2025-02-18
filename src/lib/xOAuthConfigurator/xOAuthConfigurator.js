@@ -10,10 +10,10 @@ import VerifyCredentialsConfigurator from './services/VerifyCredentialsConfigura
 import PhaseBuilder from '../PhaseBuilder/PhaseBuilder.js';
 
 /**
-   Configures phases created with PhaseBuilder (see PhaseBulder phases info).
-   With emmited events it exposes the interface to the user for each phase.
+   Configures xOAuth phases created with PhaseBuilder (see PhaseBulder phases info).
+   With emmited events it exposes an interface to the user for each phase.
 */
-class PhaseConfigurator extends PhaseBuilder {
+class xOAuthConfigurator extends PhaseBuilder {
     constructor(args) {
 
         const vault = {}; // sensitive user info
@@ -24,7 +24,7 @@ class PhaseConfigurator extends PhaseBuilder {
         // define alternator as a tools for running/switching (between) the phases
         this.alternator = {
 
-            run: function (tokenObj) {
+            run: function (tokenObj) { 
 
                 try {
                     OAuth.safeKeepAccessToken(tokenObj, vault); // safe keep token in vault
@@ -55,11 +55,12 @@ class PhaseConfigurator extends PhaseBuilder {
 
         Upgrade.addWorkSpace.call(this.alternator); // adding state (phase) menagment tools to alternator
 
-        this.startAlternator = function (req, res, next) {
+        // start alternator to configure xoauth phases
+        this.start = async function (req, res, next) {
 
             try {
 
-                this.initPhases(req, res, next); // initiate phases
+                await this.initPhases(req, res, next); // initiate phases
 
             } catch (err) {
 
@@ -77,8 +78,8 @@ class PhaseConfigurator extends PhaseBuilder {
             'accessTokenMissing': 'To verify access token, function must be called with an access token object'
         });
 
-        PhaseConfigurator.vault = vault; // convinience refs
-        PhaseConfigurator.options = options;
+        xOAuthConfigurator.vault = vault; // convinience refs
+        xOAuthConfigurator.options = options;
     }
 
     // load alternator with phases
@@ -117,7 +118,7 @@ class PhaseConfigurator extends PhaseBuilder {
     }
 
     //configure alternator for verify credentials phase
-    configureVerifyCredentialsPhase(options, vault, params) {
+    configureVerifyCredentialsPhase(options, vault, params) { 
    
         VerifyCredentialsConfigurator.set({ ...this.alternator }, options, vault, params)
     }
@@ -196,12 +197,12 @@ class PhaseConfigurator extends PhaseBuilder {
         };
     }
 
-    verifyAccessToken(tokenObj, params) {
+    verifyAccessToken(tokenObj, params) { 
         return this.promisify(this.verCredentials.bind(this, tokenObj, params));
     }
 
-    verCredentials(tokenObj, params = {}) {
-        const { options, vault } = PhaseConfigurator;
+    verCredentials(tokenObj, params = {}) { 
+        const { options, vault } = xOAuthConfigurator;
 
         this.alternator.save({ legRun: this.legPhase.run, apiPhase: this.apiPhase }); // save apiPhase and legRun
 
@@ -220,9 +221,9 @@ class PhaseConfigurator extends PhaseBuilder {
     }
 }
 
-PhaseConfigurator.prototype.eventNames = {   // Names of events that are emitted
+xOAuthConfigurator.prototype.eventNames = {  // Names of events that are emitted
     loadAccessToken: 'hasteOrOAuth',         // Handler for inserting (loading) access token  
     tokenFound: 'tokenFound'                 // Handler that passes access token to user
 }
 
-export default PhaseConfigurator;
+export default xOAuthConfigurator;

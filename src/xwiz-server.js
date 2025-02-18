@@ -1,11 +1,13 @@
-import PhaseConfigurator from "./lib/PhaseConfigurator/PhaseConfigurator.js";
+import xOAuthConfigurator from "./lib/xOAuthConfigurator/xOAuthConfigurator.js";
 
 export default function (args) {
 
    return function () {
-      const pc = new PhaseConfigurator(args);
-      pc.startAlternator.apply(pc, arguments);
+
+      (async () => {
+
+        const xOAuth = new xOAuthConfigurator(args);
+        await xOAuth.start.apply(xOAuth, arguments);
+      })();
    }
 }
-
-

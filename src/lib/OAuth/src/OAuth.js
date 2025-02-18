@@ -122,22 +122,25 @@ import hmacSha1 from 'hmac_sha1';
    /**
          Set options for API phase (X api call with access token)
          MUST HAVE: "content-type" and "content-length" headers and a request body (body for the api request)
+         verifyCredentials also runs a finalizeApiPhaseOptions,MUST NOT HAVE 'content-length' header 
+         because it has GET as method)
    */
-   finalizeApiPhaseOptions(options, phase) {
+   finalizeApiPhaseOptions(options, phase) { 
 
       // Set general options
       this.finalizeOptions(options, phase);
 
       let hasBody = options.method === 'POST';
 
-      if (hasBody) {
+      if (hasBody) { 
 
          options.headers['content-type'] = 'application/json';
          options.headers['content-length'] = Buffer.byteLength(options.apiBody, 'utf8');
-         options.body = options.apiBody;
+         options.body = options.apiBody; 
       }
 
    }
+
    /**
          Set options for OAUTH leg phases
          MUST HAVE: "content-length" header and a request body (body is legSBS - signature base string for the leg)
@@ -157,6 +160,5 @@ import hmacSha1 from 'hmac_sha1';
       };
    }
 }
-
 
 export default OAuth
