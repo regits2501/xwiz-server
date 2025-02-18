@@ -13,7 +13,7 @@ xwiz-server does authentication and/or authorization to [X](https://x.com/) with
 * [Examples](#examples)
   * [Example 1 (not saving access token)](#example-1-not-saving-access-token) 
     * [Continue OAuth](#continue-oauth)
-    * * [Test drive example 1](#test-drive-example-1)
+    * [Test drive example 1](#test-drive-example-1)
   * [Example 2 (saving access token)](#example-2-saving-access-token)
     * [Verify credentials and haste](#verify-credentials-and-haste)
     * [Authorize or Authenticate (Sign in with X)](#authorize-or-authenticate-sign-in-with-X)
