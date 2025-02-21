@@ -109,19 +109,28 @@ Simple use case where you do not save user's access token.
 
 ### [⬑](#contents)
       
-   
-    CDN:  <script src="https://cdn.jsdelivr.net/npm/xwiz-client/src/xwiz-client_bundle.min.js"></script>
-   
-    yarn:  yarn add xwiz-client
-	 
-    local:
-
-    npm install xwiz-client
-
-    Then drop it in script tag:  <script src="src/xwiz-client_bundle.js"></script>	
     
-    Or if you are using your own builder make sure it picks up: "src/xwiz-client.js" file	 
+    CDN:  <script type="module" src="https://cdn.jsdelivr.net/npm/xwiz-client/src/xwiz-client_bundle.js"></script>
+    
+    Then import in your script:
+    
+      `import twizClient from 'https://cdn.jsdelivr.net/npm/xwiz-client/src/xwiz-client_bundle.js'`
+    
+    (Alternatively define an importmap to shorten the long CDN urls).
 	 
+    Local npm:
+
+    `npm install xwiz-client`
+
+    Local yarn:
+
+     `yarn add xwiz-client`
+
+    Then drop it in script tag: 
+       <script type="module" src="src/xwiz-client_bundle.js"></script>
+
+    Or if you are using your own builder make sure it picks up: "src/xwiz-client.js" file	
+
 	 
   _**client**_
 
@@ -477,7 +486,7 @@ Like in simple use case with [continue oauth](#continue-oauth).
 
     } catch (err) {
 
-        // go for 3 leg OAuth only firs time, when you don't have user's access token
+        // go for 3 leg OAuth only first time, when you don't have user's access token
         xwiz.continueOAuth();
     }
   })
@@ -504,7 +513,7 @@ client : `OAuth(args)`  =====> server `verfyCredentials(accessToken)` ; `haste(a
 
 You get `res.data` from `OAuth(args)` call. 
 There is no redirection.
-Redirection happen only first time, when you do not yet have an access token. 
+Redirection happens only first time, when you do not yet have an access token. 
 
 
 
